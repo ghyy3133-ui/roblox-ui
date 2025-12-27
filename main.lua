@@ -21,11 +21,12 @@ frame.Position = UDim2.new(0, 10, 0, 50)
 frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 frame.BorderSizePixel = 0
 
--- TOGGLE BUTTON
+-- TOGGLE BUTTON (BÊN PHẢI)
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Parent = screenGui
 toggleBtn.Size = UDim2.new(0, 30, 0, 30)
-toggleBtn.Position = UDim2.new(0, 10, 0, 10)
+toggleBtn.AnchorPoint = Vector2.new(1, 0)
+toggleBtn.Position = UDim2.new(1, -10, 0, 10)
 toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleBtn.Font = Enum.Font.GothamBold
@@ -56,7 +57,7 @@ local function newLabel(text, color)
 	return lbl
 end
 
--- COPY TEXTBOX (bôi đen Ctrl+C)
+-- COPY TEXTBOX
 local function newCopyBox(text, color)
 	local box = Instance.new("TextBox")
 	box.Parent = frame
