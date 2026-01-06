@@ -12,32 +12,40 @@ local playerGui = player:WaitForChild("PlayerGui")
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = playerGui
 screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
 
--- MAIN FRAME
+-- MAIN FRAME (trên cùng - giữa, auto resize)
 local frame = Instance.new("Frame")
 frame.Parent = screenGui
-frame.Size = UDim2.new(0, 260, 0, 210)
-frame.Position = UDim2.new(0, 10, 0, 50)
+frame.Size = UDim2.new(0, 260, 0, 0) -- Y = 0 để auto resize
+frame.AnchorPoint = Vector2.new(0.5, 0)
+frame.Position = UDim2.new(0.5, 0, 0, 5)
 frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 frame.BorderSizePixel = 0
+frame.AutomaticSize = Enum.AutomaticSize.Y
 
--- TOGGLE BUTTON (BÊN PHẢI)
+-- FRAME PADDING
+local framePad = Instance.new("UIPadding", frame)
+framePad.PaddingTop = UDim.new(0, 6)
+framePad.PaddingBottom = UDim.new(0, 6)
+
+-- LAYOUT
+local layout = Instance.new("UIListLayout")
+layout.Parent = frame
+layout.Padding = UDim.new(0, 5)
+
+-- TOGGLE BUTTON (bên trái bảng)
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Parent = screenGui
 toggleBtn.Size = UDim2.new(0, 30, 0, 30)
 toggleBtn.AnchorPoint = Vector2.new(1, 0)
-toggleBtn.Position = UDim2.new(1, -10, 0, 10)
+toggleBtn.Position = UDim2.new(0.5, -frame.Size.X.Offset / 2 - 5, 0, 5)
 toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.TextSize = 18
 toggleBtn.Text = "≡"
 toggleBtn.BorderSizePixel = 0
-
--- LAYOUT
-local layout = Instance.new("UIListLayout")
-layout.Parent = frame
-layout.Padding = UDim.new(0, 5)
 
 -- LABEL
 local function newLabel(text, color)
@@ -57,7 +65,7 @@ local function newLabel(text, color)
 	return lbl
 end
 
--- COPY TEXTBOX
+-- COPY BOX
 local function newCopyBox(text, color)
 	local box = Instance.new("TextBox")
 	box.Parent = frame
