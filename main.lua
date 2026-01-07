@@ -18,6 +18,7 @@ local main = Instance.new("Frame", gui)
 main.Size = UDim2.new(0, 520, 0, 270)
 main.Position = UDim2.new(0.5, -260, 0, 30)
 main.BackgroundColor3 = Color3.fromRGB(20, 90, 150)
+main.BackgroundTransparency = 0.35 -- 🔹 trong suốt
 main.BorderSizePixel = 0
 
 Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
@@ -25,6 +26,7 @@ Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
 local stroke = Instance.new("UIStroke", main)
 stroke.Thickness = 3
 stroke.Color = Color3.fromRGB(0, 140, 255)
+stroke.Transparency = 0.2 -- 🔹 viền hơi trong
 
 -- Avatar
 local avatar = Instance.new("ImageLabel", main)
@@ -56,12 +58,13 @@ info.TextSize = 14
 info.TextXAlignment = Left
 
 -- ========== BUTTON MAKER ==========
-local function makeBtn(text, x, y, w, h, color)
+local function makeBtn(text, x, y, w, h, color, trans)
 	local b = Instance.new("TextButton", main)
 	b.Text = text
 	b.Size = UDim2.new(0, w, 0, h)
 	b.Position = UDim2.new(0, x, 0, y)
 	b.BackgroundColor3 = color
+	b.BackgroundTransparency = trans or 0.25 -- 🔹 nút trong suốt
 	b.TextColor3 = Color3.new(1,1,1)
 	b.Font = Enum.Font.GothamBold
 	b.TextSize = 14
@@ -70,11 +73,11 @@ local function makeBtn(text, x, y, w, h, color)
 	return b
 end
 
--- Buttons giống ảnh
-local lowSetBtn   = makeBtn("Low Set",      20, 80, 220, 45, Color3.fromRGB(90,170,90))
-local hideMapBtn  = makeBtn("Hide Map: ON", 280, 80, 220, 45, Color3.fromRGB(170,100,100))
-local fpsLockBtn  = makeBtn("10",           20, 140, 220, 45, Color3.fromRGB(40,40,40))
-local noRenderBtn = makeBtn("No Render: OFF",280,140,220,45, Color3.fromRGB(120,120,120))
+-- Buttons
+local lowSetBtn   = makeBtn("Low Set",        20, 80, 220, 45, Color3.fromRGB(90,170,90), 0.3)
+local hideMapBtn  = makeBtn("Hide Map: ON",  280, 80, 220, 45, Color3.fromRGB(170,100,100), 0.3)
+local fpsLockBtn  = makeBtn("10",            20, 140, 220, 45, Color3.fromRGB(40,40,40), 0.35)
+local noRenderBtn = makeBtn("No Render: OFF",280, 140, 220, 45, Color3.fromRGB(120,120,120), 0.35)
 
 -- JobId
 local jobText = Instance.new("TextLabel", main)
@@ -87,14 +90,14 @@ jobText.TextSize = 13
 jobText.TextXAlignment = Left
 jobText.Text = "JobId: "..game.JobId
 
-local jobBox = makeBtn(game.JobId, 20, 220, 480, 35, Color3.fromRGB(30,30,30))
+local jobBox = makeBtn(game.JobId, 20, 220, 480, 35, Color3.fromRGB(30,30,30), 0.4)
 jobBox.TextXAlignment = Left
 jobBox.TextWrapped = true
 jobBox.TextSize = 12
 
-local joinBtn = makeBtn("Join", 20, 260, 140, 35, Color3.fromRGB(80,180,80))
-local spamBtn = makeBtn("Spam Join", 190, 260, 140, 35, Color3.fromRGB(180,100,100))
-local copyBtn = makeBtn("Copy", 360, 260, 140, 35, Color3.fromRGB(90,120,180))
+local joinBtn = makeBtn("Join", 20, 260, 140, 35, Color3.fromRGB(80,180,80), 0.3)
+local spamBtn = makeBtn("Spam Join", 190, 260, 140, 35, Color3.fromRGB(180,100,100), 0.3)
+local copyBtn = makeBtn("Copy", 360, 260, 140, 35, Color3.fromRGB(90,120,180), 0.3)
 
 -- ========== FPS + PING ==========
 local last = tick()
@@ -106,25 +109,21 @@ RunService.RenderStepped:Connect(function()
 		local fps = frames
 		frames = 0
 		last = tick()
-		
 		local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
 		info.Text = "FPS: "..fps.."    Ping: "..ping.." ms"
 	end
 end)
 
--- ========== FUNCTIONS ==========
-
--- Low Set
+-- ========== FEATURES ==========
 lowSetBtn.MouseButton1Click:Connect(function()
 	settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
 end)
 
--- Hide Map (KHÔNG LÀM XANH MÀN)
+-- Hide Map (không làm xanh màn)
 local hidden = false
 hideMapBtn.MouseButton1Click:Connect(function()
 	hidden = not hidden
 	hideMapBtn.Text = "Hide Map: "..(hidden and "ON" or "OFF")
-
 	for _,v in pairs(workspace:GetDescendants()) do
 		if v:IsA("BasePart") and not v:IsDescendantOf(player.Character) then
 			v.LocalTransparencyModifier = hidden and 1 or 0
@@ -168,7 +167,7 @@ spamBtn.MouseButton1Click:Connect(function()
 	end)
 end)
 
--- Copy JobId
+-- Copy
 copyBtn.MouseButton1Click:Connect(function()
 	if setclipboard then
 		setclipboard(game.JobId)
