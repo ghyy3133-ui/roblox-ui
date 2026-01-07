@@ -2,150 +2,206 @@
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local Stats = game:GetService("Stats")
+local TeleportService = game:GetService("TeleportService")
 local UserInputService = game:GetService("UserInputService")
+local Stats = game:GetService("Stats")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- GUI
+-- ================= GUI =================
 local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = playerGui
+screenGui.Name = "FPS_PING_UI"
 screenGui.ResetOnSpawn = false
-screenGui.IgnoreGuiInset = true
+screenGui.Parent = playerGui
 
--- MAIN FRAME (trên cùng - giữa, auto resize)
-local frame = Instance.new("Frame")
-frame.Parent = screenGui
-frame.Size = UDim2.new(0, 260, 0, 0) -- Y = 0 để auto resize
-frame.AnchorPoint = Vector2.new(0.5, 0)
-frame.Position = UDim2.new(0.5, 0, 0, 5)
-frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-frame.BorderSizePixel = 0
-frame.AutomaticSize = Enum.AutomaticSize.Y
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 500, 0, 230)
+main.Position = UDim2.new(0.5, -250, 0, 20)
+main.BackgroundColor3 = Color3.fromRGB(25, 70, 120)
+main.BorderSizePixel = 0
+main.Parent = screenGui
 
--- FRAME PADDING
-local framePad = Instance.new("UIPadding", frame)
-framePad.PaddingTop = UDim.new(0, 6)
-framePad.PaddingBottom = UDim.new(0, 6)
+local corner = Instance.new("UICorner", main)
+corner.CornerRadius = UDim.new(0, 12)
 
--- LAYOUT
-local layout = Instance.new("UIListLayout")
-layout.Parent = frame
-layout.Padding = UDim.new(0, 5)
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -20, 0, 40)
+title.Position = UDim2.new(0, 10, 0, 5)
+title.BackgroundTransparency = 1
+title.Text = player.Name.."  (@"..player.Name..")"
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.TextXAlignment = Left
+title.Parent = main
 
--- TOGGLE BUTTON (bên trái bảng)
-local toggleBtn = Instance.new("TextButton")
-toggleBtn.Parent = screenGui
-toggleBtn.Size = UDim2.new(0, 30, 0, 30)
-toggleBtn.AnchorPoint = Vector2.new(1, 0)
-toggleBtn.Position = UDim2.new(0.5, -frame.Size.X.Offset / 2 - 5, 0, 5)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleBtn.Font = Enum.Font.GothamBold
-toggleBtn.TextSize = 18
-toggleBtn.Text = "≡"
-toggleBtn.BorderSizePixel = 0
+-- FPS + Ping
+local info = Instance.new("TextLabel")
+info.Size = UDim2.new(1, -20, 0, 30)
+info.Position = UDim2.new(0, 10, 0, 45)
+info.BackgroundTransparency = 1
+info.TextColor3 = Color3.new(1,1,1)
+info.Font = Enum.Font.Gotham
+info.TextSize = 14
+info.TextXAlignment = Left
+info.Text = "FPS: 0   Ping: 0 ms"
+info.Parent = main
 
--- LABEL
-local function newLabel(text, color)
-	local lbl = Instance.new("TextLabel")
-	lbl.Parent = frame
-	lbl.Size = UDim2.new(1, -10, 0, 20)
-	lbl.BackgroundTransparency = 1
-	lbl.TextXAlignment = Enum.TextXAlignment.Left
-	lbl.Font = Enum.Font.GothamBold
-	lbl.TextSize = 16
-	lbl.TextColor3 = color
-	lbl.Text = text
-
-	local pad = Instance.new("UIPadding", lbl)
-	pad.PaddingLeft = UDim.new(0, 6)
-
-	return lbl
+-- ================= BUTTON CREATOR =================
+local function createButton(text, pos, size, color)
+	local b = Instance.new("TextButton")
+	b.Size = size
+	b.Position = pos
+	b.BackgroundColor3 = color
+	b.Text = text
+	b.TextColor3 = Color3.new(1,1,1)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 14
+	b.BorderSizePixel = 0
+	b.Parent = main
+	
+	local c = Instance.new("UICorner", b)
+	c.CornerRadius = UDim.new(0, 8)
+	
+	return b
 end
 
--- COPY BOX
-local function newCopyBox(text, color)
-	local box = Instance.new("TextBox")
-	box.Parent = frame
-	box.Size = UDim2.new(1, -10, 0, 20)
-	box.BackgroundTransparency = 1
-	box.TextXAlignment = Enum.TextXAlignment.Left
-	box.Font = Enum.Font.GothamBold
-	box.TextSize = 14
-	box.TextColor3 = color
-	box.TextEditable = false
-	box.ClearTextOnFocus = false
-	box.Text = text
+-- Buttons
+local fpsBtn = createButton("Low Set", UDim2.new(0, 10, 0, 90), UDim2.new(0, 220, 0, 40), Color3.fromRGB(90, 170, 90))
+local hideMapBtn = createButton("Hide Map: OFF", UDim2.new(0, 260, 0, 90), UDim2.new(0, 220, 0, 40), Color3.fromRGB(170, 100, 100))
+local fpsLockBtn = createButton("FPS Lock: 60", UDim2.new(0, 10, 0, 140), UDim2.new(0, 220, 0, 40), Color3.fromRGB(60, 60, 60))
+local noRenderBtn = createButton("No Render: OFF", UDim2.new(0, 260, 0, 140), UDim2.new(0, 220, 0, 40), Color3.fromRGB(120, 120, 120))
 
-	local pad = Instance.new("UIPadding", box)
-	pad.PaddingLeft = UDim.new(0, 6)
+-- ================= JOB ID =================
+local jobLabel = Instance.new("TextLabel")
+jobLabel.Size = UDim2.new(1, -20, 0, 30)
+jobLabel.Position = UDim2.new(0, 10, 0, 190)
+jobLabel.BackgroundTransparency = 1
+jobLabel.TextColor3 = Color3.new(1,1,1)
+jobLabel.Font = Enum.Font.Gotham
+jobLabel.TextSize = 13
+jobLabel.TextXAlignment = Left
+jobLabel.Text = "JobId: "..game.JobId
+jobLabel.Parent = main
 
-	return box
-end
+local joinBtn = createButton("Join", UDim2.new(0, 10, 0, 220), UDim2.new(0, 140, 0, 35), Color3.fromRGB(90, 180, 90))
+local spamJoinBtn = createButton("Spam Join", UDim2.new(0, 180, 0, 220), UDim2.new(0, 140, 0, 35), Color3.fromRGB(180, 100, 100))
+local copyBtn = createButton("Copy", UDim2.new(0, 350, 0, 220), UDim2.new(0, 140, 0, 35), Color3.fromRGB(90, 120, 180))
 
--- INFO
-newLabel("ScriptByGiaHuy", Color3.fromRGB(255,255,255))
-local nameLabel = newLabel("Name: " .. player.Name, Color3.fromRGB(255,105,180))
-local fpsLabel = newLabel("FPS: ...", Color3.fromRGB(0,150,255))
-local pingLabel = newLabel("Ping: ... ms", Color3.fromRGB(255,0,0))
-local playerCountLabel = newLabel("Players: .../12", Color3.fromRGB(180,255,180))
+-- ================= FPS + PING =================
+local last = tick()
+local frames = 0
 
-newCopyBox("PlaceId: " .. game.PlaceId, Color3.fromRGB(255,255,150))
-newCopyBox("JobId: " .. game.JobId, Color3.fromRGB(200,200,255))
-
--- UPDATE NAME
-player:GetPropertyChangedSignal("Name"):Connect(function()
-	nameLabel.Text = "Name: " .. player.Name
-end)
-
--- FPS
-local frames, last = 0, tick()
 RunService.RenderStepped:Connect(function()
 	frames += 1
-	local now = tick()
-	if now - last >= 0.5 then
-		fpsLabel.Text = "FPS: " .. math.floor(frames / (now - last))
+	if tick() - last >= 1 then
+		local fps = frames
 		frames = 0
-		last = now
+		last = tick()
+		
+		local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+		info.Text = "FPS: "..fps.."   Ping: "..ping.." ms"
 	end
 end)
 
--- PING
-task.spawn(function()
-	while true do
-		local pingStat = Stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
-		if pingStat then
-			pingLabel.Text = "Ping: " .. math.floor(pingStat:GetValue()) .. " ms"
-		else
-			pingLabel.Text = "Ping: N/A"
+-- ================= FEATURES =================
+
+-- Low Graphics
+fpsBtn.MouseButton1Click:Connect(function()
+	settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+end)
+
+-- Hide Map
+local hideMap = false
+hideMapBtn.MouseButton1Click:Connect(function()
+	hideMap = not hideMap
+	hideMapBtn.Text = "Hide Map: "..(hideMap and "ON" or "OFF")
+	
+	for _,v in pairs(workspace:GetDescendants()) do
+		if v:IsA("BasePart") then
+			if hideMap then
+				v.Transparency = 1
+				v.CanCollide = false
+			else
+				v.Transparency = 0
+				v.CanCollide = true
+			end
 		end
-		task.wait(0.5)
 	end
 end)
 
--- PLAYER COUNT
-local MAX_PLAYERS = 12
-local function updatePlayerCount()
-	playerCountLabel.Text = "Players: " .. #Players:GetPlayers() .. "/" .. MAX_PLAYERS
-end
-updatePlayerCount()
-Players.PlayerAdded:Connect(updatePlayerCount)
-Players.PlayerRemoving:Connect(updatePlayerCount)
+-- FPS Lock (chỉ hoạt động trên executor hỗ trợ setfpscap)
+local fpsCap = 60
+fpsLockBtn.MouseButton1Click:Connect(function()
+	fpsCap = (fpsCap == 60 and 30 or 60)
+	fpsLockBtn.Text = "FPS Lock: "..fpsCap
+	
+	if setfpscap then
+		setfpscap(fpsCap)
+	end
+end)
 
--- TOGGLE LOGIC
-local visible = true
-local function toggleUI()
-	visible = not visible
-	frame.Visible = visible
-end
+-- No Render
+local noRender = false
+noRenderBtn.MouseButton1Click:Connect(function()
+	noRender = not noRender
+	noRenderBtn.Text = "No Render: "..(noRender and "ON" or "OFF")
+	
+	RunService:Set3dRenderingEnabled(not noRender)
+end)
 
-toggleBtn.MouseButton1Click:Connect(toggleUI)
+-- ================= JOB ID FUNCTIONS =================
 
-UserInputService.InputBegan:Connect(function(input, gpe)
-	if gpe then return end
-	if input.KeyCode == Enum.KeyCode.RightShift then
-		toggleUI()
+-- Join server bằng JobId
+joinBtn.MouseButton1Click:Connect(function()
+	if game.JobId ~= "" then
+		TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
+	end
+end)
+
+-- Spam Join
+local spamming = false
+spamJoinBtn.MouseButton1Click:Connect(function()
+	spamming = not spamming
+	spamJoinBtn.Text = spamming and "Spamming..." or "Spam Join"
+	
+	task.spawn(function()
+		while spamming do
+			TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
+			task.wait(1)
+		end
+	end)
+end)
+
+-- Copy JobId
+copyBtn.MouseButton1Click:Connect(function()
+	if setclipboard then
+		setclipboard(game.JobId)
+	end
+end)
+
+-- ================= DRAG UI =================
+local dragging, dragStart, startPos
+
+main.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = main.Position
+	end
+end)
+
+main.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = false
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+		local delta = input.Position - dragStart
+		main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 	end
 end)
