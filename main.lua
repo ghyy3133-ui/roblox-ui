@@ -9,6 +9,11 @@ local TeleportService = game:GetService("TeleportService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- LƯU FPS BẰNG getgenv (CÁCH 1)
+if getgenv().SavedFPS == nil then
+	getgenv().SavedFPS = 0
+end
+
 -- GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = playerGui
@@ -154,7 +159,7 @@ local function newJoinBox()
 	end)
 end
 
--- FPS LOCK BOX (DÙNG setfpscap)
+-- FPS LOCK BOX (setfpscap + getgenv)
 local function newFpsLockBox()
 	local holder = Instance.new("Frame")
 	holder.Parent = frame
@@ -168,7 +173,7 @@ local function newFpsLockBox()
 	local box = Instance.new("TextBox")
 	box.Parent = holder
 	box.Size = UDim2.new(1, -60, 1, 0)
-	box.PlaceholderText = "FPS Lock (vd: 30, 60, 120)"
+	box.PlaceholderText = "Nhập FPS cần lock"
 	box.Text = ""
 	box.Font = Enum.Font.Gotham
 	box.TextSize = 14
@@ -201,10 +206,36 @@ local function newFpsLockBox()
 		local value = tonumber(box.Text)
 		if setfpscap then
 			if value and value > 0 then
-				setfpscap(value) -- LOCK FPS BẰNG EXPLOIT
+				getgenv().SavedFPS = value
+				setfpscap(value)
 			else
-				setfpscap(0) -- 0 = UNLOCK
+				getgenv().SavedFPS = 0
+				setfpscap(0)
 			end
+		end
+	end)
+end
+
+-- NÚT NHANH 10 FPS
+local function newQuick10FPS()
+	local btn = Instance.new("TextButton")
+	btn.Parent = frame
+	btn.Size = UDim2.new(1, -10, 0, 26)
+	btn.Text = "LOCK 10 FPS"
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 14
+	btn.TextColor3 = Color3.fromRGB(255,255,255)
+	btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+	btn.BackgroundTransparency = 0.15
+	btn.BorderSizePixel = 0
+
+	local c = Instance.new("UICorner", btn)
+	c.CornerRadius = UDim.new(0, 8)
+
+	btn.MouseButton1Click:Connect(function()
+		if setfpscap then
+			getgenv().SavedFPS = 10
+			setfpscap(10)
 		end
 	end)
 end
@@ -213,28 +244,46 @@ end
 newLabel("ScriptByGiaHuy", Color3.fromRGB(255,255,255))
 local nameLabel = newLabel("Name: " .. player.Name, Color3.fromRGB(255,105,180))
 local fpsLabel = newLabel("FPS: ...", Color3.fromRGB(0,150,255))
+local fpsLockLabel = newLabel("FPS Lock: UNLOCK", Color3.fromRGB(0,255,255))
 local pingLabel = newLabel("Ping: ... ms", Color3.fromRGB(255,0,0))
 local playerCountLabel = newLabel("Players: .../12", Color3.fromRGB(180,255,180))
 
 newCopyBox("PlaceId: " .. game.PlaceId, Color3.fromRGB(255,255,150))
 newCopyBox("JobId: " .. game.JobId, Color3.fromRGB(200,200,255))
 
--- JOIN + FPS LOCK
+-- JOIN + FPS LOCK + QUICK 10
 newJoinBox()
 newFpsLockBox()
+newQuick10FPS()
+
+-- AUTO APPLY FPS KHI VÀO SERVER MỚI
+task.spawn(function()
+	task.wait(1)
+	if setfpscap and getgenv().SavedFPS and getgenv().SavedFPS > 0 then
+		setfpscap(getgenv().SavedFPS)
+	end
+end)
 
 -- UPDATE NAME
 player:GetPropertyChangedSignal("Name"):Connect(function()
 	nameLabel.Text = "Name: " .. player.Name
 end)
 
--- FPS COUNTER
+-- FPS COUNTER + HIỂN THỊ FPS LOCK
 local frames, last = 0, tick()
 RunService.RenderStepped:Connect(function()
 	frames += 1
 	local now = tick()
 	if now - last >= 0.5 then
-		fpsLabel.Text = "FPS: " .. math.floor(frames / (now - last))
+		local fps = math.floor(frames / (now - last))
+		fpsLabel.Text = "FPS: " .. fps
+
+		if getgenv().SavedFPS and getgenv().SavedFPS > 0 then
+			fpsLockLabel.Text = "FPS Lock: " .. tostring(getgenv().SavedFPS)
+		else
+			fpsLockLabel.Text = "FPS Lock: UNLOCK"
+		end
+
 		frames = 0
 		last = now
 	end
