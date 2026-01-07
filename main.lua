@@ -1,5 +1,10 @@
--- LocalScript đặt trong StarterGui
+-- AUTO LOCK 10 FPS (DELTA MOBILE)
+local FPS_LOCK = 10
+if setfpscap then
+	setfpscap(FPS_LOCK)
+end
 
+-- SERVICES
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Stats = game:GetService("Stats")
@@ -9,36 +14,32 @@ local TeleportService = game:GetService("TeleportService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- LƯU FPS BẰNG getgenv (CÁCH 1)
-if getgenv().SavedFPS == nil then
-	getgenv().SavedFPS = 0
-end
-
 -- GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = playerGui
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
 
--- MAIN FRAME
+-- MAIN FRAME (trên cùng - giữa)
 local frame = Instance.new("Frame")
 frame.Parent = screenGui
 frame.Size = UDim2.new(0, 260, 0, 0)
 frame.AnchorPoint = Vector2.new(0.5, 0)
 frame.Position = UDim2.new(0.5, 0, 0, 5)
 frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-frame.BackgroundTransparency = 0.35
+frame.BackgroundTransparency = 0.35 -- trong suốt
 frame.BorderSizePixel = 0
 frame.AutomaticSize = Enum.AutomaticSize.Y
 
--- BO TRÒN
+-- BO GÓC
 local corner = Instance.new("UICorner", frame)
-corner.CornerRadius = UDim.new(0, 12)
+corner.CornerRadius = UDim.new(0, 10)
 
 -- VIỀN XANH
 local stroke = Instance.new("UIStroke", frame)
-stroke.Color = Color3.fromRGB(0, 170, 255)
-stroke.Thickness = 2
+stroke.Thickness = 1.5
+stroke.Color = Color3.fromRGB(0, 200, 255)
+stroke.Transparency = 0
 
 -- PADDING
 local framePad = Instance.new("UIPadding", frame)
@@ -50,26 +51,26 @@ local layout = Instance.new("UIListLayout")
 layout.Parent = frame
 layout.Padding = UDim.new(0, 5)
 
--- TOGGLE BUTTON
+-- TOGGLE BUTTON (bên trái bảng)
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Parent = screenGui
 toggleBtn.Size = UDim2.new(0, 30, 0, 30)
 toggleBtn.AnchorPoint = Vector2.new(1, 0)
-toggleBtn.Position = UDim2.new(0.5, -frame.Size.X.Offset / 2 - 5, 0, 5)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-toggleBtn.BackgroundTransparency = 0.3
-toggleBtn.TextColor3 = Color3.fromRGB(0, 170, 255)
+toggleBtn.Position = UDim2.new(0.5, -140, 0, 5)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+toggleBtn.BackgroundTransparency = 0.35
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.TextSize = 18
 toggleBtn.Text = "≡"
 toggleBtn.BorderSizePixel = 0
 
-local toggleCorner = Instance.new("UICorner", toggleBtn)
-toggleCorner.CornerRadius = UDim.new(0, 8)
+local tCorner = Instance.new("UICorner", toggleBtn)
+tCorner.CornerRadius = UDim.new(0, 8)
 
-local toggleStroke = Instance.new("UIStroke", toggleBtn)
-toggleStroke.Color = Color3.fromRGB(0, 170, 255)
-toggleStroke.Thickness = 1.5
+local tStroke = Instance.new("UIStroke", toggleBtn)
+tStroke.Thickness = 1.5
+tStroke.Color = Color3.fromRGB(0, 200, 255)
 
 -- LABEL
 local function newLabel(text, color)
@@ -79,7 +80,7 @@ local function newLabel(text, color)
 	lbl.BackgroundTransparency = 1
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.Font = Enum.Font.GothamBold
-	lbl.TextSize = 16
+	lbl.TextSize = 15
 	lbl.TextColor3 = color
 	lbl.Text = text
 
@@ -93,7 +94,7 @@ end
 local function newCopyBox(text, color)
 	local box = Instance.new("TextBox")
 	box.Parent = frame
-	box.Size = UDim2.new(1, -10, 0, 20)
+	box.Size = UDim2.new(1, -10, 0, 22)
 	box.BackgroundTransparency = 1
 	box.TextXAlignment = Enum.TextXAlignment.Left
 	box.Font = Enum.Font.GothamBold
@@ -109,158 +110,70 @@ local function newCopyBox(text, color)
 	return box
 end
 
--- JOIN JOBID BOX
-local function newJoinBox()
-	local holder = Instance.new("Frame")
-	holder.Parent = frame
-	holder.Size = UDim2.new(1, -10, 0, 28)
-	holder.BackgroundTransparency = 1
-
-	local layout2 = Instance.new("UIListLayout", holder)
-	layout2.FillDirection = Enum.FillDirection.Horizontal
-	layout2.Padding = UDim.new(0, 4)
-
+-- INPUT BOX
+local function newInputBox(placeholder)
 	local box = Instance.new("TextBox")
-	box.Parent = holder
-	box.Size = UDim2.new(1, -60, 1, 0)
-	box.PlaceholderText = "Nhập JobId..."
-	box.Text = ""
+	box.Parent = frame
+	box.Size = UDim2.new(1, -10, 0, 24)
+	box.BackgroundTransparency = 1
+	box.TextXAlignment = Enum.TextXAlignment.Left
 	box.Font = Enum.Font.Gotham
 	box.TextSize = 14
 	box.TextColor3 = Color3.fromRGB(255,255,255)
-	box.BackgroundColor3 = Color3.fromRGB(0,0,0)
-	box.BackgroundTransparency = 0.4
-	box.BorderSizePixel = 0
+	box.PlaceholderText = placeholder
+	box.ClearTextOnFocus = false
 
-	local c1 = Instance.new("UICorner", box)
-	c1.CornerRadius = UDim.new(0, 8)
+	local pad = Instance.new("UIPadding", box)
+	pad.PaddingLeft = UDim.new(0, 6)
 
-	local s1 = Instance.new("UIStroke", box)
-	s1.Color = Color3.fromRGB(0,170,255)
-	s1.Thickness = 1
-
-	local btn = Instance.new("TextButton")
-	btn.Parent = holder
-	btn.Size = UDim2.new(0, 56, 1, 0)
-	btn.Text = "JOIN"
-	btn.Font = Enum.Font.GothamBold
-	btn.TextSize = 14
-	btn.TextColor3 = Color3.fromRGB(255,255,255)
-	btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
-	btn.BorderSizePixel = 0
-
-	local c2 = Instance.new("UICorner", btn)
-	c2.CornerRadius = UDim.new(0, 8)
-
-	btn.MouseButton1Click:Connect(function()
-		if box.Text ~= "" then
-			TeleportService:TeleportToPlaceInstance(game.PlaceId, box.Text, player)
-		end
-	end)
+	return box
 end
 
--- FPS LOCK BOX (setfpscap + getgenv)
-local function newFpsLockBox()
-	local holder = Instance.new("Frame")
-	holder.Parent = frame
-	holder.Size = UDim2.new(1, -10, 0, 28)
-	holder.BackgroundTransparency = 1
-
-	local layout2 = Instance.new("UIListLayout", holder)
-	layout2.FillDirection = Enum.FillDirection.Horizontal
-	layout2.Padding = UDim.new(0, 4)
-
-	local box = Instance.new("TextBox")
-	box.Parent = holder
-	box.Size = UDim2.new(1, -60, 1, 0)
-	box.PlaceholderText = "Nhập FPS cần lock"
-	box.Text = ""
-	box.Font = Enum.Font.Gotham
-	box.TextSize = 14
-	box.TextColor3 = Color3.fromRGB(255,255,255)
-	box.BackgroundColor3 = Color3.fromRGB(0,0,0)
-	box.BackgroundTransparency = 0.4
-	box.BorderSizePixel = 0
-
-	local c1 = Instance.new("UICorner", box)
-	c1.CornerRadius = UDim.new(0, 8)
-
-	local s1 = Instance.new("UIStroke", box)
-	s1.Color = Color3.fromRGB(0,170,255)
-	s1.Thickness = 1
-
-	local btn = Instance.new("TextButton")
-	btn.Parent = holder
-	btn.Size = UDim2.new(0, 56, 1, 0)
-	btn.Text = "SET"
-	btn.Font = Enum.Font.GothamBold
-	btn.TextSize = 14
-	btn.TextColor3 = Color3.fromRGB(255,255,255)
-	btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
-	btn.BorderSizePixel = 0
-
-	local c2 = Instance.new("UICorner", btn)
-	c2.CornerRadius = UDim.new(0, 8)
-
-	btn.MouseButton1Click:Connect(function()
-		local value = tonumber(box.Text)
-		if setfpscap then
-			if value and value > 0 then
-				getgenv().SavedFPS = value
-				setfpscap(value)
-			else
-				getgenv().SavedFPS = 0
-				setfpscap(0)
-			end
-		end
-	end)
-end
-
--- NÚT NHANH 10 FPS
-local function newQuick10FPS()
+-- BUTTON
+local function newButton(text)
 	local btn = Instance.new("TextButton")
 	btn.Parent = frame
-	btn.Size = UDim2.new(1, -10, 0, 26)
-	btn.Text = "LOCK 10 FPS"
+	btn.Size = UDim2.new(1, -10, 0, 24)
+	btn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	btn.BackgroundTransparency = 0.35
+	btn.TextColor3 = Color3.fromRGB(255,255,255)
 	btn.Font = Enum.Font.GothamBold
 	btn.TextSize = 14
-	btn.TextColor3 = Color3.fromRGB(255,255,255)
-	btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
-	btn.BackgroundTransparency = 0.15
+	btn.Text = text
 	btn.BorderSizePixel = 0
 
 	local c = Instance.new("UICorner", btn)
 	c.CornerRadius = UDim.new(0, 8)
 
-	btn.MouseButton1Click:Connect(function()
-		if setfpscap then
-			getgenv().SavedFPS = 10
-			setfpscap(10)
-		end
-	end)
+	local s = Instance.new("UIStroke", btn)
+	s.Thickness = 1.5
+	s.Color = Color3.fromRGB(0, 200, 255)
+
+	return btn
 end
 
 -- INFO
 newLabel("ScriptByGiaHuy", Color3.fromRGB(255,255,255))
 local nameLabel = newLabel("Name: " .. player.Name, Color3.fromRGB(255,105,180))
 local fpsLabel = newLabel("FPS: ...", Color3.fromRGB(0,150,255))
-local fpsLockLabel = newLabel("FPS Lock: UNLOCK", Color3.fromRGB(0,255,255))
 local pingLabel = newLabel("Ping: ... ms", Color3.fromRGB(255,0,0))
 local playerCountLabel = newLabel("Players: .../12", Color3.fromRGB(180,255,180))
 
+-- HIỂN THỊ FPS LOCK (CHỈ HIỂN THỊ)
+local fpsLockLabel = newLabel("FPS Lock: " .. FPS_LOCK, Color3.fromRGB(0,255,150))
+
+-- COPY INFO
 newCopyBox("PlaceId: " .. game.PlaceId, Color3.fromRGB(255,255,150))
 newCopyBox("JobId: " .. game.JobId, Color3.fromRGB(200,200,255))
 
--- JOIN + FPS LOCK + QUICK 10
-newJoinBox()
-newFpsLockBox()
-newQuick10FPS()
+-- JOIN JOBID
+local jobBox = newInputBox("Nhập JobId để join...")
+local joinBtn = newButton("JOIN JOBID")
 
--- AUTO APPLY FPS KHI VÀO SERVER MỚI
-task.spawn(function()
-	task.wait(1)
-	if setfpscap and getgenv().SavedFPS and getgenv().SavedFPS > 0 then
-		setfpscap(getgenv().SavedFPS)
+joinBtn.MouseButton1Click:Connect(function()
+	local jobId = jobBox.Text
+	if jobId and jobId ~= "" then
+		TeleportService:TeleportToPlaceInstance(game.PlaceId, jobId, player)
 	end
 end)
 
@@ -269,21 +182,13 @@ player:GetPropertyChangedSignal("Name"):Connect(function()
 	nameLabel.Text = "Name: " .. player.Name
 end)
 
--- FPS COUNTER + HIỂN THỊ FPS LOCK
+-- FPS
 local frames, last = 0, tick()
 RunService.RenderStepped:Connect(function()
 	frames += 1
 	local now = tick()
 	if now - last >= 0.5 then
-		local fps = math.floor(frames / (now - last))
-		fpsLabel.Text = "FPS: " .. fps
-
-		if getgenv().SavedFPS and getgenv().SavedFPS > 0 then
-			fpsLockLabel.Text = "FPS Lock: " .. tostring(getgenv().SavedFPS)
-		else
-			fpsLockLabel.Text = "FPS Lock: UNLOCK"
-		end
-
+		fpsLabel.Text = "FPS: " .. math.floor(frames / (now - last))
 		frames = 0
 		last = now
 	end
@@ -311,7 +216,7 @@ updatePlayerCount()
 Players.PlayerAdded:Connect(updatePlayerCount)
 Players.PlayerRemoving:Connect(updatePlayerCount)
 
--- TOGGLE
+-- TOGGLE LOGIC
 local visible = true
 local function toggleUI()
 	visible = not visible
