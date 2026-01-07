@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Stats = game:GetService("Stats")
 local UserInputService = game:GetService("UserInputService")
+local TeleportService = game:GetService("TeleportService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -17,12 +18,23 @@ screenGui.IgnoreGuiInset = true
 -- MAIN FRAME (trên cùng - giữa, auto resize)
 local frame = Instance.new("Frame")
 frame.Parent = screenGui
-frame.Size = UDim2.new(0, 260, 0, 0) -- Y = 0 để auto resize
+frame.Size = UDim2.new(0, 260, 0, 0)
 frame.AnchorPoint = Vector2.new(0.5, 0)
 frame.Position = UDim2.new(0.5, 0, 0, 5)
 frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BackgroundTransparency = 0.35 -- trong suốt
 frame.BorderSizePixel = 0
 frame.AutomaticSize = Enum.AutomaticSize.Y
+
+-- BO TRÒN
+local corner = Instance.new("UICorner", frame)
+corner.CornerRadius = UDim.new(0, 12)
+
+-- VIỀN XANH
+local stroke = Instance.new("UIStroke", frame)
+stroke.Color = Color3.fromRGB(0, 170, 255)
+stroke.Thickness = 2
+stroke.Transparency = 0
 
 -- FRAME PADDING
 local framePad = Instance.new("UIPadding", frame)
@@ -40,12 +52,20 @@ toggleBtn.Parent = screenGui
 toggleBtn.Size = UDim2.new(0, 30, 0, 30)
 toggleBtn.AnchorPoint = Vector2.new(1, 0)
 toggleBtn.Position = UDim2.new(0.5, -frame.Size.X.Offset / 2 - 5, 0, 5)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+toggleBtn.BackgroundTransparency = 0.3
+toggleBtn.TextColor3 = Color3.fromRGB(0, 170, 255)
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.TextSize = 18
 toggleBtn.Text = "≡"
 toggleBtn.BorderSizePixel = 0
+
+local toggleCorner = Instance.new("UICorner", toggleBtn)
+toggleCorner.CornerRadius = UDim.new(0, 8)
+
+local toggleStroke = Instance.new("UIStroke", toggleBtn)
+toggleStroke.Color = Color3.fromRGB(0, 170, 255)
+toggleStroke.Thickness = 1.5
 
 -- LABEL
 local function newLabel(text, color)
@@ -85,6 +105,56 @@ local function newCopyBox(text, color)
 	return box
 end
 
+-- JOIN JOBID BOX
+local function newJoinBox()
+	local holder = Instance.new("Frame")
+	holder.Parent = frame
+	holder.Size = UDim2.new(1, -10, 0, 28)
+	holder.BackgroundTransparency = 1
+
+	local layout2 = Instance.new("UIListLayout", holder)
+	layout2.FillDirection = Enum.FillDirection.Horizontal
+	layout2.Padding = UDim.new(0, 4)
+
+	local box = Instance.new("TextBox")
+	box.Parent = holder
+	box.Size = UDim2.new(1, -60, 1, 0)
+	box.PlaceholderText = "Nhập JobId..."
+	box.Text = ""
+	box.Font = Enum.Font.Gotham
+	box.TextSize = 14
+	box.TextColor3 = Color3.fromRGB(255,255,255)
+	box.BackgroundColor3 = Color3.fromRGB(0,0,0)
+	box.BackgroundTransparency = 0.4
+	box.BorderSizePixel = 0
+
+	local c1 = Instance.new("UICorner", box)
+	c1.CornerRadius = UDim.new(0, 8)
+
+	local s1 = Instance.new("UIStroke", box)
+	s1.Color = Color3.fromRGB(0,170,255)
+	s1.Thickness = 1
+
+	local btn = Instance.new("TextButton")
+	btn.Parent = holder
+	btn.Size = UDim2.new(0, 56, 1, 0)
+	btn.Text = "JOIN"
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 14
+	btn.TextColor3 = Color3.fromRGB(255,255,255)
+	btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+	btn.BorderSizePixel = 0
+
+	local c2 = Instance.new("UICorner", btn)
+	c2.CornerRadius = UDim.new(0, 8)
+
+	btn.MouseButton1Click:Connect(function()
+		if box.Text ~= "" then
+			TeleportService:TeleportToPlaceInstance(game.PlaceId, box.Text, player)
+		end
+	end)
+end
+
 -- INFO
 newLabel("ScriptByGiaHuy", Color3.fromRGB(255,255,255))
 local nameLabel = newLabel("Name: " .. player.Name, Color3.fromRGB(255,105,180))
@@ -94,6 +164,9 @@ local playerCountLabel = newLabel("Players: .../12", Color3.fromRGB(180,255,180)
 
 newCopyBox("PlaceId: " .. game.PlaceId, Color3.fromRGB(255,255,150))
 newCopyBox("JobId: " .. game.JobId, Color3.fromRGB(200,200,255))
+
+-- JOIN JOBID
+newJoinBox()
 
 -- UPDATE NAME
 player:GetPropertyChangedSignal("Name"):Connect(function()
