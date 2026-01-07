@@ -23,7 +23,7 @@ screenGui.IgnoreGuiInset = true
 -- MAIN FRAME
 local frame = Instance.new("Frame")
 frame.Parent = screenGui
-frame.Size = UDim2.new(0, 360, 0, 170)
+frame.Size = UDim2.new(0, 360, 0, 200)
 frame.AnchorPoint = Vector2.new(0.5, 0)
 frame.Position = UDim2.new(0.5, 0, 0, 10)
 frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
@@ -80,18 +80,29 @@ nameLabel.TextSize = 14
 nameLabel.TextColor3 = Color3.fromRGB(255,255,255)
 nameLabel.Text = player.Name
 
--- STATS LINE
+-- ===== STATS (TO, RÕ) =====
 local statsLabel = Instance.new("TextLabel")
 statsLabel.Parent = frame
-statsLabel.Size = UDim2.new(1, 0, 0, 20)
+statsLabel.Size = UDim2.new(1, 0, 0, 26)
 statsLabel.BackgroundTransparency = 1
 statsLabel.TextXAlignment = Enum.TextXAlignment.Left
-statsLabel.Font = Enum.Font.Gotham
-statsLabel.TextSize = 13
-statsLabel.TextColor3 = Color3.fromRGB(200,200,200)
+statsLabel.Font = Enum.Font.GothamBold
+statsLabel.TextSize = 16
+statsLabel.TextColor3 = Color3.fromRGB(255,255,255)
 statsLabel.Text = "FPS: ... | Ping: ... ms | FPS Lock: 10"
 
--- ===== PLACEID BOX =====
+-- ===== CURRENT JOBID =====
+local currentJob = Instance.new("TextLabel")
+currentJob.Parent = frame
+currentJob.Size = UDim2.new(1, 0, 0, 22)
+currentJob.BackgroundTransparency = 1
+currentJob.TextXAlignment = Enum.TextXAlignment.Left
+currentJob.Font = Enum.Font.Gotham
+currentJob.TextSize = 13
+currentJob.TextColor3 = Color3.fromRGB(200,200,200)
+currentJob.Text = "Current JobId: " .. tostring(game.JobId)
+
+-- ===== PLACEID =====
 local placeBox = Instance.new("TextBox")
 placeBox.Parent = frame
 placeBox.Size = UDim2.new(1, 0, 0, 26)
@@ -113,7 +124,7 @@ local placeStroke = Instance.new("UIStroke", placeBox)
 placeStroke.Thickness = 1
 placeStroke.Color = Color3.fromRGB(0,180,255)
 
--- ===== JOBID BOX =====
+-- ===== JOBID INPUT (ẨN KHI TRỐNG) =====
 local jobBox = Instance.new("TextBox")
 jobBox.Parent = frame
 jobBox.Size = UDim2.new(1, 0, 0, 28)
@@ -122,10 +133,11 @@ jobBox.BackgroundTransparency = 0.4
 jobBox.TextColor3 = Color3.fromRGB(255,255,255)
 jobBox.Font = Enum.Font.Gotham
 jobBox.TextSize = 13
-jobBox.PlaceholderText = "JobId..."
+jobBox.PlaceholderText = "Nhập JobId để Join..."
 jobBox.ClearTextOnFocus = false
 jobBox.TextXAlignment = Enum.TextXAlignment.Left
 jobBox.BorderSizePixel = 0
+jobBox.Visible = false
 
 local jobCorner = Instance.new("UICorner", jobBox)
 jobCorner.CornerRadius = UDim.new(0, 10)
@@ -193,11 +205,6 @@ tStroke.Color = Color3.fromRGB(0,180,255)
 
 -- ===== LOGIC =====
 
--- UPDATE NAME
-player:GetPropertyChangedSignal("Name"):Connect(function()
-	nameLabel.Text = player.Name
-end)
-
 -- FPS
 local frames, last = 0, tick()
 RunService.RenderStepped:Connect(function()
@@ -219,6 +226,15 @@ task.spawn(function()
 			statsLabel.Text = "FPS: " .. tostring(FPS_LOCK) .. " | Ping: " .. math.floor(pingStat:GetValue()) .. " ms | FPS Lock: " .. FPS_LOCK
 		end
 		task.wait(0.5)
+	end
+end)
+
+-- HIỆN / ẨN JOB BOX KHI TRỐNG
+jobBox:GetPropertyChangedSignal("Text"):Connect(function()
+	if jobBox.Text == "" then
+		jobBox.Visible = false
+	else
+		jobBox.Visible = true
 	end
 end)
 
