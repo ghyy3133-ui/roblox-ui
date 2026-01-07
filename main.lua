@@ -74,7 +74,7 @@ nameLabel.TextSize = 14
 nameLabel.TextColor3 = Color3.fromRGB(255,255,255)
 nameLabel.Text = player.Name
 
--- ===== STATS (TO, RÕ) =====
+-- ===== STATS =====
 local statsLabel = Instance.new("TextLabel")
 statsLabel.Parent = frame
 statsLabel.Size = UDim2.new(1, 0, 0, 26)
@@ -85,7 +85,7 @@ statsLabel.TextSize = 16
 statsLabel.TextColor3 = Color3.fromRGB(255,255,255)
 statsLabel.Text = "FPS: ... | Ping: ... ms | FPS Lock: 10"
 
--- ===== PLAYER COUNT =====
+-- ===== PLAYER COUNT (5/12) =====
 local playerCountLabel = Instance.new("TextLabel")
 playerCountLabel.Parent = frame
 playerCountLabel.Size = UDim2.new(1, 0, 0, 22)
@@ -94,7 +94,7 @@ playerCountLabel.TextXAlignment = Enum.TextXAlignment.Left
 playerCountLabel.Font = Enum.Font.Gotham
 playerCountLabel.TextSize = 13
 playerCountLabel.TextColor3 = Color3.fromRGB(180,255,180)
-playerCountLabel.Text = "Players: ..."
+playerCountLabel.Text = "Players: .../..."
 
 -- ===== CURRENT JOBID =====
 local currentJob = Instance.new("TextLabel")
@@ -129,7 +129,7 @@ local placeStroke = Instance.new("UIStroke", placeBox)
 placeStroke.Thickness = 1
 placeStroke.Color = Color3.fromRGB(0,180,255)
 
--- ===== JOBID INPUT (ẨN KHI TRỐNG) =====
+-- ===== JOBID INPUT =====
 local jobBox = Instance.new("TextBox")
 jobBox.Parent = frame
 jobBox.Size = UDim2.new(1, 0, 0, 28)
@@ -142,7 +142,7 @@ jobBox.PlaceholderText = "Nhập JobId để Join server..."
 jobBox.ClearTextOnFocus = false
 jobBox.TextXAlignment = Enum.TextXAlignment.Left
 jobBox.BorderSizePixel = 0
-jobBox.Visible = false
+jobBox.Visible = true
 
 local jobCorner = Instance.new("UICorner", jobBox)
 jobCorner.CornerRadius = UDim.new(0, 10)
@@ -210,9 +210,11 @@ tStroke.Color = Color3.fromRGB(0,180,255)
 
 -- ===== LOGIC =====
 
--- UPDATE PLAYER COUNT
+-- UPDATE PLAYER COUNT (5/12)
 local function updatePlayerCount()
-	playerCountLabel.Text = "Players: " .. #Players:GetPlayers()
+	local current = #Players:GetPlayers()
+	local max = Players.MaxPlayers
+	playerCountLabel.Text = "Players: " .. current .. "/" .. max
 end
 updatePlayerCount()
 Players.PlayerAdded:Connect(updatePlayerCount)
@@ -239,15 +241,6 @@ task.spawn(function()
 			statsLabel.Text = "FPS: " .. FPS_LOCK .. " | Ping: " .. math.floor(pingStat:GetValue()) .. " ms | FPS Lock: " .. FPS_LOCK
 		end
 		task.wait(0.5)
-	end
-end)
-
--- HIỆN / ẨN JOB BOX KHI TRỐNG
-jobBox:GetPropertyChangedSignal("Text"):Connect(function()
-	if jobBox.Text == "" then
-		jobBox.Visible = false
-	else
-		jobBox.Visible = true
 	end
 end)
 
