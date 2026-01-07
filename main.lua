@@ -15,14 +15,14 @@ screenGui.Parent = playerGui
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
 
--- MAIN FRAME (trên cùng - giữa, auto resize)
+-- MAIN FRAME
 local frame = Instance.new("Frame")
 frame.Parent = screenGui
 frame.Size = UDim2.new(0, 260, 0, 0)
 frame.AnchorPoint = Vector2.new(0.5, 0)
 frame.Position = UDim2.new(0.5, 0, 0, 5)
 frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-frame.BackgroundTransparency = 0.35 -- trong suốt
+frame.BackgroundTransparency = 0.35
 frame.BorderSizePixel = 0
 frame.AutomaticSize = Enum.AutomaticSize.Y
 
@@ -34,9 +34,8 @@ corner.CornerRadius = UDim.new(0, 12)
 local stroke = Instance.new("UIStroke", frame)
 stroke.Color = Color3.fromRGB(0, 170, 255)
 stroke.Thickness = 2
-stroke.Transparency = 0
 
--- FRAME PADDING
+-- PADDING
 local framePad = Instance.new("UIPadding", frame)
 framePad.PaddingTop = UDim.new(0, 6)
 framePad.PaddingBottom = UDim.new(0, 6)
@@ -46,7 +45,7 @@ local layout = Instance.new("UIListLayout")
 layout.Parent = frame
 layout.Padding = UDim.new(0, 5)
 
--- TOGGLE BUTTON (bên trái bảng)
+-- TOGGLE BUTTON
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Parent = screenGui
 toggleBtn.Size = UDim2.new(0, 30, 0, 30)
@@ -155,6 +154,61 @@ local function newJoinBox()
 	end)
 end
 
+-- FPS LOCK BOX (DÙNG setfpscap)
+local function newFpsLockBox()
+	local holder = Instance.new("Frame")
+	holder.Parent = frame
+	holder.Size = UDim2.new(1, -10, 0, 28)
+	holder.BackgroundTransparency = 1
+
+	local layout2 = Instance.new("UIListLayout", holder)
+	layout2.FillDirection = Enum.FillDirection.Horizontal
+	layout2.Padding = UDim.new(0, 4)
+
+	local box = Instance.new("TextBox")
+	box.Parent = holder
+	box.Size = UDim2.new(1, -60, 1, 0)
+	box.PlaceholderText = "FPS Lock (vd: 30, 60, 120)"
+	box.Text = ""
+	box.Font = Enum.Font.Gotham
+	box.TextSize = 14
+	box.TextColor3 = Color3.fromRGB(255,255,255)
+	box.BackgroundColor3 = Color3.fromRGB(0,0,0)
+	box.BackgroundTransparency = 0.4
+	box.BorderSizePixel = 0
+
+	local c1 = Instance.new("UICorner", box)
+	c1.CornerRadius = UDim.new(0, 8)
+
+	local s1 = Instance.new("UIStroke", box)
+	s1.Color = Color3.fromRGB(0,170,255)
+	s1.Thickness = 1
+
+	local btn = Instance.new("TextButton")
+	btn.Parent = holder
+	btn.Size = UDim2.new(0, 56, 1, 0)
+	btn.Text = "SET"
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 14
+	btn.TextColor3 = Color3.fromRGB(255,255,255)
+	btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+	btn.BorderSizePixel = 0
+
+	local c2 = Instance.new("UICorner", btn)
+	c2.CornerRadius = UDim.new(0, 8)
+
+	btn.MouseButton1Click:Connect(function()
+		local value = tonumber(box.Text)
+		if setfpscap then
+			if value and value > 0 then
+				setfpscap(value) -- LOCK FPS BẰNG EXPLOIT
+			else
+				setfpscap(0) -- 0 = UNLOCK
+			end
+		end
+	end)
+end
+
 -- INFO
 newLabel("ScriptByGiaHuy", Color3.fromRGB(255,255,255))
 local nameLabel = newLabel("Name: " .. player.Name, Color3.fromRGB(255,105,180))
@@ -165,15 +219,16 @@ local playerCountLabel = newLabel("Players: .../12", Color3.fromRGB(180,255,180)
 newCopyBox("PlaceId: " .. game.PlaceId, Color3.fromRGB(255,255,150))
 newCopyBox("JobId: " .. game.JobId, Color3.fromRGB(200,200,255))
 
--- JOIN JOBID
+-- JOIN + FPS LOCK
 newJoinBox()
+newFpsLockBox()
 
 -- UPDATE NAME
 player:GetPropertyChangedSignal("Name"):Connect(function()
 	nameLabel.Text = "Name: " .. player.Name
 end)
 
--- FPS
+-- FPS COUNTER
 local frames, last = 0, tick()
 RunService.RenderStepped:Connect(function()
 	frames += 1
@@ -207,7 +262,7 @@ updatePlayerCount()
 Players.PlayerAdded:Connect(updatePlayerCount)
 Players.PlayerRemoving:Connect(updatePlayerCount)
 
--- TOGGLE LOGIC
+-- TOGGLE
 local visible = true
 local function toggleUI()
 	visible = not visible
