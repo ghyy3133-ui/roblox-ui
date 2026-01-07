@@ -1,10 +1,10 @@
--- AUTO LOCK 10 FPS (DELTA MOBILE)
+-- ===== AUTO LOCK 10 FPS (DELTA / MOBILE) =====
 local FPS_LOCK = 10
 if setfpscap then
 	setfpscap(FPS_LOCK)
 end
 
--- SERVICES
+-- ===== SERVICES =====
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Stats = game:GetService("Stats")
@@ -14,35 +14,31 @@ local TeleportService = game:GetService("TeleportService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- GUI
+-- ===== GUI =====
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = playerGui
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
 
--- MAIN FRAME
+-- ===== MAIN FRAME =====
 local frame = Instance.new("Frame")
 frame.Parent = screenGui
-frame.Size = UDim2.new(0, 360, 0, 200)
+frame.Size = UDim2.new(0, 360, 0, 260)
 frame.AnchorPoint = Vector2.new(0.5, 0)
 frame.Position = UDim2.new(0.5, 0, 0, 10)
 frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
 frame.BackgroundTransparency = 0.45
 frame.BorderSizePixel = 0
 
--- BO GÓC
 local corner = Instance.new("UICorner", frame)
 corner.CornerRadius = UDim.new(0, 16)
 
--- VIỀN
 local stroke = Instance.new("UIStroke", frame)
 stroke.Thickness = 1.5
-stroke.Color = Color3.fromRGB(0, 180, 255)
+stroke.Color = Color3.fromRGB(0,180,255)
 stroke.Transparency = 0.1
 
--- LAYOUT
-local layout = Instance.new("UIListLayout")
-layout.Parent = frame
+local layout = Instance.new("UIListLayout", frame)
 layout.Padding = UDim.new(0, 6)
 
 local padding = Instance.new("UIPadding", frame)
@@ -51,7 +47,7 @@ padding.PaddingBottom = UDim.new(0, 8)
 padding.PaddingLeft = UDim.new(0, 8)
 padding.PaddingRight = UDim.new(0, 8)
 
--- ===== PLAYER INFO BAR =====
+-- ===== PLAYER BAR =====
 local infoBar = Instance.new("Frame")
 infoBar.Parent = frame
 infoBar.Size = UDim2.new(1, 0, 0, 40)
@@ -62,14 +58,12 @@ infoLayout.FillDirection = Enum.FillDirection.Horizontal
 infoLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 infoLayout.Padding = UDim.new(0, 8)
 
--- AVATAR
 local avatar = Instance.new("ImageLabel")
 avatar.Parent = infoBar
 avatar.Size = UDim2.new(0, 32, 0, 32)
 avatar.BackgroundTransparency = 1
 avatar.Image = "rbxthumb://type=AvatarHeadShot&id=" .. player.UserId .. "&w=150&h=150"
 
--- NAME
 local nameLabel = Instance.new("TextLabel")
 nameLabel.Parent = infoBar
 nameLabel.Size = UDim2.new(1, -40, 0, 20)
@@ -90,6 +84,17 @@ statsLabel.Font = Enum.Font.GothamBold
 statsLabel.TextSize = 16
 statsLabel.TextColor3 = Color3.fromRGB(255,255,255)
 statsLabel.Text = "FPS: ... | Ping: ... ms | FPS Lock: 10"
+
+-- ===== PLAYER COUNT =====
+local playerCountLabel = Instance.new("TextLabel")
+playerCountLabel.Parent = frame
+playerCountLabel.Size = UDim2.new(1, 0, 0, 22)
+playerCountLabel.BackgroundTransparency = 1
+playerCountLabel.TextXAlignment = Enum.TextXAlignment.Left
+playerCountLabel.Font = Enum.Font.Gotham
+playerCountLabel.TextSize = 13
+playerCountLabel.TextColor3 = Color3.fromRGB(180,255,180)
+playerCountLabel.Text = "Players: ..."
 
 -- ===== CURRENT JOBID =====
 local currentJob = Instance.new("TextLabel")
@@ -133,7 +138,7 @@ jobBox.BackgroundTransparency = 0.4
 jobBox.TextColor3 = Color3.fromRGB(255,255,255)
 jobBox.Font = Enum.Font.Gotham
 jobBox.TextSize = 13
-jobBox.PlaceholderText = "Nhập JobId để Join..."
+jobBox.PlaceholderText = "Nhập JobId để Join server..."
 jobBox.ClearTextOnFocus = false
 jobBox.TextXAlignment = Enum.TextXAlignment.Left
 jobBox.BorderSizePixel = 0
@@ -149,7 +154,7 @@ jobStroke.Color = Color3.fromRGB(0,180,255)
 -- ===== BUTTON BAR =====
 local btnBar = Instance.new("Frame")
 btnBar.Parent = frame
-btnBar.Size = UDim2.new(1, 0, 0, 30)
+btnBar.Size = UDim2.new(1, 0, 0, 32)
 btnBar.BackgroundTransparency = 1
 
 local btnLayout = Instance.new("UIListLayout", btnBar)
@@ -179,7 +184,7 @@ joinBtn.Parent = btnBar
 local spamBtn = makeBtn("Spam Join", Color3.fromRGB(200,80,80))
 spamBtn.Parent = btnBar
 
-local copyBtn = makeBtn("Copy", Color3.fromRGB(80,140,255))
+local copyBtn = makeBtn("Copy JobId", Color3.fromRGB(80,140,255))
 copyBtn.Parent = btnBar
 
 -- ===== TOGGLE BUTTON =====
@@ -205,6 +210,14 @@ tStroke.Color = Color3.fromRGB(0,180,255)
 
 -- ===== LOGIC =====
 
+-- UPDATE PLAYER COUNT
+local function updatePlayerCount()
+	playerCountLabel.Text = "Players: " .. #Players:GetPlayers()
+end
+updatePlayerCount()
+Players.PlayerAdded:Connect(updatePlayerCount)
+Players.PlayerRemoving:Connect(updatePlayerCount)
+
 -- FPS
 local frames, last = 0, tick()
 RunService.RenderStepped:Connect(function()
@@ -223,7 +236,7 @@ task.spawn(function()
 	while true do
 		local pingStat = Stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
 		if pingStat then
-			statsLabel.Text = "FPS: " .. tostring(FPS_LOCK) .. " | Ping: " .. math.floor(pingStat:GetValue()) .. " ms | FPS Lock: " .. FPS_LOCK
+			statsLabel.Text = "FPS: " .. FPS_LOCK .. " | Ping: " .. math.floor(pingStat:GetValue()) .. " ms | FPS Lock: " .. FPS_LOCK
 		end
 		task.wait(0.5)
 	end
@@ -261,14 +274,14 @@ spamBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- COPY JOBID
+-- COPY CURRENT JOBID
 copyBtn.MouseButton1Click:Connect(function()
 	if setclipboard then
-		setclipboard(jobBox.Text)
+		setclipboard(game.JobId)
 	end
 end)
 
--- TOGGLE
+-- TOGGLE UI
 local visible = true
 toggleBtn.MouseButton1Click:Connect(function()
 	visible = not visible
