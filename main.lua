@@ -10,6 +10,7 @@ local RunService = game:GetService("RunService")
 local Stats = game:GetService("Stats")
 local UserInputService = game:GetService("UserInputService")
 local TeleportService = game:GetService("TeleportService")
+local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -85,7 +86,7 @@ statsLabel.TextSize = 16
 statsLabel.TextColor3 = Color3.fromRGB(255,255,255)
 statsLabel.Text = "FPS: ... | Ping: ... ms | FPS Lock: 10"
 
--- ===== PLAYER COUNT (5/12) =====
+-- ===== PLAYER COUNT =====
 local playerCountLabel = Instance.new("TextLabel")
 playerCountLabel.Parent = frame
 playerCountLabel.Size = UDim2.new(1, 0, 0, 22)
@@ -163,7 +164,7 @@ btnLayout.Padding = UDim.new(0, 6)
 
 local function makeBtn(text, color)
 	local b = Instance.new("TextButton")
-	b.Size = UDim2.new(1/3, -4, 1, 0)
+	b.Size = UDim2.new(1/4, -4, 1, 0)
 	b.BackgroundColor3 = color
 	b.BackgroundTransparency = 0.15
 	b.TextColor3 = Color3.fromRGB(255,255,255)
@@ -187,7 +188,10 @@ spamBtn.Parent = btnBar
 local copyBtn = makeBtn("Copy JobId", Color3.fromRGB(80,140,255))
 copyBtn.Parent = btnBar
 
--- ===== TOGGLE BUTTON =====
+local noRenderBtn = makeBtn("No Render", Color3.fromRGB(120,120,120))
+noRenderBtn.Parent = btnBar
+
+-- ===== TOGGLE BUTTON (SHOW/HIDE UI) =====
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Parent = screenGui
 toggleBtn.Size = UDim2.new(0, 34, 0, 34)
@@ -210,7 +214,7 @@ tStroke.Color = Color3.fromRGB(0,180,255)
 
 -- ===== LOGIC =====
 
--- UPDATE PLAYER COUNT (5/12)
+-- UPDATE PLAYER COUNT
 local function updatePlayerCount()
 	local current = #Players:GetPlayers()
 	local max = Players.MaxPlayers
@@ -286,5 +290,74 @@ UserInputService.InputBegan:Connect(function(input, gpe)
 	if input.KeyCode == Enum.KeyCode.RightShift then
 		visible = not visible
 		frame.Visible = visible
+	end
+end)
+
+-- ===== NO RENDER (HIDE MAP) =====
+local noRenderEnabled = false
+local savedTransparency = {}
+
+local function hideObject(obj)
+	if obj:IsA("BasePart") or obj:IsA("Decal") or obj:IsA("Texture") then
+		if savedTransparency[obj] == nil then
+			savedTransparency[obj] = obj.Transparency
+		end
+		obj.Transparency = 1
+	end
+end
+
+local function restoreObject(obj)
+	if savedTransparency[obj] ~= nil then
+		obj.Transparency = savedTransparency[obj]
+		savedTransparency[obj] = nil
+	end
+end
+
+local function enableNoRender()
+	noRenderEnabled = true
+	noRenderBtn.Text = "No Render: ON"
+
+	for _,v in ipairs(Workspace:GetDescendants()) do
+		pcall(function()
+			hideObject(v)
+		end)
+	end
+
+	if getnilinstances then
+		for _,v in ipairs(getnilinstances()) do
+			pcall(function()
+				hideObject(v)
+				for _,v1 in ipairs(v:GetDescendants()) do
+					hideObject(v1)
+				end
+			end)
+		end
+	end
+end
+
+local function disableNoRender()
+	noRenderEnabled = false
+	noRenderBtn.Text = "No Render: OFF"
+
+	for obj,_ in pairs(savedTransparency) do
+		pcall(function()
+			restoreObject(obj)
+		end)
+	end
+end
+
+Workspace.DescendantAdded:Connect(function(v)
+	if noRenderEnabled then
+		pcall(function()
+			hideObject(v)
+		end)
+	end
+end)
+
+noRenderBtn.MouseButton1Click:Connect(function()
+	if noRenderEnabled then
+		disableNoRender()
+	else
+		enableNoRender()
 	end
 end)
