@@ -361,3 +361,9 @@ noRenderBtn.MouseButton1Click:Connect(function()
 		enableNoRender()
 	end
 end)
+
+-- ===== AUTO ENABLE NO RENDER AFTER JOIN SERVER =====
+task.spawn(function()
+	task.wait(5) -- đợi map load xong
+	enableNoRender()
+end)
