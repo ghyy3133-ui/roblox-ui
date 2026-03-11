@@ -1,11 +1,8 @@
--- ===== AUTO LOCK 10 FPS =====
+-- ===== FPS LOCK =====
 local FPS_LOCK = 10
 if setfpscap then
 	setfpscap(FPS_LOCK)
 end
-
--- ===== SAVE NOTE BETWEEN SERVERS =====
-getgenv().SavedNote = getgenv().SavedNote or ""
 
 -- ===== SERVICES =====
 local Players = game:GetService("Players")
@@ -14,9 +11,20 @@ local Stats = game:GetService("Stats")
 local UserInputService = game:GetService("UserInputService")
 local TeleportService = game:GetService("TeleportService")
 local Workspace = game:GetService("Workspace")
+local HttpService = game:GetService("HttpService")
+local CoreGui = game:GetService("CoreGui")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+
+-- ===== FILE SAVE NOTE =====
+local fileName = "server_notes.json"
+local notes = {}
+
+if isfile and isfile(fileName) then
+	local data = readfile(fileName)
+	notes = HttpService:JSONDecode(data)
+end
 
 -- ===== GUI =====
 local screenGui = Instance.new("ScreenGui")
@@ -35,10 +43,6 @@ frame.BackgroundTransparency = 0.45
 frame.BorderSizePixel = 0
 
 Instance.new("UICorner",frame).CornerRadius = UDim.new(0,16)
-
-local stroke = Instance.new("UIStroke",frame)
-stroke.Thickness = 1.5
-stroke.Color = Color3.fromRGB(0,180,255)
 
 local layout = Instance.new("UIListLayout",frame)
 layout.Padding = UDim.new(0,6)
@@ -66,56 +70,54 @@ avatar.Image = "rbxthumb://type=AvatarHeadShot&id="..player.UserId.."&w=150&h=15
 local nameLabel = Instance.new("TextLabel",infoBar)
 nameLabel.Size = UDim2.new(1,-40,0,20)
 nameLabel.BackgroundTransparency = 1
-nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 nameLabel.Font = Enum.Font.GothamBold
 nameLabel.TextSize = 14
 nameLabel.TextColor3 = Color3.fromRGB(255,255,255)
+nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 nameLabel.Text = player.Name
 
 -- ===== STATS =====
 local statsLabel = Instance.new("TextLabel",frame)
 statsLabel.Size = UDim2.new(1,0,0,26)
 statsLabel.BackgroundTransparency = 1
-statsLabel.TextXAlignment = Enum.TextXAlignment.Left
 statsLabel.Font = Enum.Font.GothamBold
 statsLabel.TextSize = 16
 statsLabel.TextColor3 = Color3.fromRGB(255,255,255)
-statsLabel.Text = "FPS: ... | Ping: ... ms"
+statsLabel.TextXAlignment = Enum.TextXAlignment.Left
+statsLabel.Text = "FPS: ... | Ping: ..."
 
 -- ===== PLAYER COUNT =====
 local playerCountLabel = Instance.new("TextLabel",frame)
 playerCountLabel.Size = UDim2.new(1,0,0,22)
 playerCountLabel.BackgroundTransparency = 1
-playerCountLabel.TextColor3 = Color3.fromRGB(180,255,180)
 playerCountLabel.Font = Enum.Font.Gotham
 playerCountLabel.TextSize = 13
+playerCountLabel.TextColor3 = Color3.fromRGB(180,255,180)
 
 -- ===== JOBID =====
 local currentJob = Instance.new("TextLabel",frame)
 currentJob.Size = UDim2.new(1,0,0,22)
 currentJob.BackgroundTransparency = 1
-currentJob.TextColor3 = Color3.fromRGB(200,200,200)
 currentJob.Font = Enum.Font.Gotham
 currentJob.TextSize = 13
+currentJob.TextColor3 = Color3.fromRGB(200,200,200)
 currentJob.Text = "Current JobId: "..game.JobId
 
 -- ===== PLACEID =====
 local placeBox = Instance.new("TextBox",frame)
 placeBox.Size = UDim2.new(1,0,0,26)
-placeBox.BackgroundColor3 = Color3.fromRGB(0,0,0)
 placeBox.BackgroundTransparency = 0.4
 placeBox.TextColor3 = Color3.fromRGB(200,200,255)
 placeBox.Font = Enum.Font.Gotham
 placeBox.TextSize = 13
 placeBox.TextEditable = false
-placeBox.Text = "PlaceId: "..game.PlaceId
 placeBox.BorderSizePixel = 0
+placeBox.Text = "PlaceId: "..game.PlaceId
 Instance.new("UICorner",placeBox).CornerRadius = UDim.new(0,10)
 
--- ===== JOBID INPUT =====
+-- ===== JOB INPUT =====
 local jobBox = Instance.new("TextBox",frame)
 jobBox.Size = UDim2.new(1,0,0,28)
-jobBox.BackgroundColor3 = Color3.fromRGB(0,0,0)
 jobBox.BackgroundTransparency = 0.4
 jobBox.TextColor3 = Color3.fromRGB(255,255,255)
 jobBox.Font = Enum.Font.Gotham
@@ -124,24 +126,28 @@ jobBox.PlaceholderText = "Nhập JobId..."
 jobBox.BorderSizePixel = 0
 Instance.new("UICorner",jobBox).CornerRadius = UDim.new(0,10)
 
--- ===== NOTE TEXTBOX =====
+-- ===== NOTE BOX =====
 local noteBox = Instance.new("TextBox",frame)
 noteBox.Size = UDim2.new(1,0,0,28)
-noteBox.BackgroundColor3 = Color3.fromRGB(0,0,0)
 noteBox.BackgroundTransparency = 0.4
 noteBox.TextColor3 = Color3.fromRGB(255,255,255)
 noteBox.Font = Enum.Font.Gotham
 noteBox.TextSize = 13
-noteBox.PlaceholderText = "Ghi chú acc (acc phụ / acc chính)"
+noteBox.PlaceholderText = "Ghi chú acc"
 noteBox.BorderSizePixel = 0
 Instance.new("UICorner",noteBox).CornerRadius = UDim.new(0,10)
 
-noteBox.Text = getgenv().SavedNote
+noteBox.Text = notes[tostring(player.UserId)] or ""
+
 noteBox.FocusLost:Connect(function()
-	getgenv().SavedNote = noteBox.Text
+	local uid = tostring(player.UserId)
+	notes[uid] = noteBox.Text
+	if writefile then
+		writefile(fileName,HttpService:JSONEncode(notes))
+	end
 end)
 
--- ===== BUTTON BAR =====
+-- ===== BUTTON =====
 local btnBar = Instance.new("Frame",frame)
 btnBar.Size = UDim2.new(1,0,0,32)
 btnBar.BackgroundTransparency = 1
@@ -181,41 +187,41 @@ local toggleBtn = Instance.new("TextButton",screenGui)
 toggleBtn.Size = UDim2.new(0,45,0,45)
 toggleBtn.AnchorPoint = Vector2.new(1,0)
 toggleBtn.Position = UDim2.new(1,-10,0,10)
-toggleBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
 toggleBtn.BackgroundTransparency = 0.4
 toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.TextSize = 22
 toggleBtn.Text = "≡"
-toggleBtn.BorderSizePixel = 0
-Instance.new("UICorner",toggleBtn).CornerRadius = UDim.new(0,12)
+Instance.new("UICorner",toggleBtn)
 
 -- ===== PLAYER COUNT =====
-local function updatePlayerCount()
+local function updatePlayers()
 	playerCountLabel.Text = "Players: "..#Players:GetPlayers().."/"..Players.MaxPlayers
 end
-updatePlayerCount()
-Players.PlayerAdded:Connect(updatePlayerCount)
-Players.PlayerRemoving:Connect(updatePlayerCount)
+
+updatePlayers()
+Players.PlayerAdded:Connect(updatePlayers)
+Players.PlayerRemoving:Connect(updatePlayers)
 
 -- ===== FPS =====
-local frames,last=0,tick()
+local frames,last = 0,tick()
+
 RunService.RenderStepped:Connect(function()
 	frames+=1
 	if tick()-last>=0.5 then
-		local fps=math.floor(frames/(tick()-last))
-		statsLabel.Text="FPS: "..fps.." | Ping: ..."
-		frames=0
-		last=tick()
+		local fps = math.floor(frames/(tick()-last))
+		statsLabel.Text = "FPS: "..fps.." | Ping: ..."
+		frames = 0
+		last = tick()
 	end
 end)
 
 -- ===== PING =====
 task.spawn(function()
 	while true do
-		local ping=Stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
+		local ping = Stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
 		if ping then
-			statsLabel.Text="FPS: "..FPS_LOCK.." | Ping: "..math.floor(ping:GetValue()).." ms"
+			statsLabel.Text = "FPS: "..FPS_LOCK.." | Ping: "..math.floor(ping:GetValue()).." ms"
 		end
 		task.wait(0.5)
 	end
@@ -223,18 +229,20 @@ end)
 
 -- ===== JOIN =====
 joinBtn.MouseButton1Click:Connect(function()
-	if jobBox.Text~="" then
+	if jobBox.Text ~= "" then
 		TeleportService:TeleportToPlaceInstance(game.PlaceId,jobBox.Text,player)
 	end
 end)
 
 -- ===== SPAM JOIN =====
-local spamming=false
+local spamming = false
+
 spamBtn.MouseButton1Click:Connect(function()
-	spamming=not spamming
-	spamBtn.Text=spamming and "Stop" or "Spam Join"
+	spamming = not spamming
+	spamBtn.Text = spamming and "Stop" or "Spam Join"
+
 	while spamming do
-		if jobBox.Text~="" then
+		if jobBox.Text ~= "" then
 			TeleportService:TeleportToPlaceInstance(game.PlaceId,jobBox.Text,player)
 		end
 		task.wait(1)
@@ -248,36 +256,36 @@ copyBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- ===== TOGGLE UI =====
-local visible=true
+-- ===== UI TOGGLE =====
+local visible = true
+
 toggleBtn.MouseButton1Click:Connect(function()
-	visible=not visible
-	frame.Visible=visible
+	visible = not visible
+	frame.Visible = visible
 end)
 
 -- ===== NO RENDER =====
-local noRender=false
-local saved={}
+local noRender = false
+local saved = {}
 
 local function hide(obj)
 	if obj:IsA("BasePart") or obj:IsA("Decal") or obj:IsA("Texture") then
-		saved[obj]=obj.Transparency
-		obj.Transparency=1
+		saved[obj] = obj.Transparency
+		obj.Transparency = 1
 	end
 end
 
 local function restore()
 	for obj,val in pairs(saved) do
 		pcall(function()
-			obj.Transparency=val
+			obj.Transparency = val
 		end)
 	end
-	saved={}
+	saved = {}
 end
 
 noRenderBtn.MouseButton1Click:Connect(function()
-	noRender=not noRender
-	noRenderBtn.Text=noRender and "No Render ON" or "No Render"
+	noRender = not noRender
 	if noRender then
 		for _,v in ipairs(Workspace:GetDescendants()) do
 			hide(v)
@@ -290,5 +298,13 @@ end)
 Workspace.DescendantAdded:Connect(function(v)
 	if noRender then
 		hide(v)
+	end
+end)
+
+-- ===== AUTO REJOIN =====
+CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+	if child.Name == "ErrorPrompt" then
+		task.wait(5)
+		TeleportService:Teleport(game.PlaceId)
 	end
 end)
