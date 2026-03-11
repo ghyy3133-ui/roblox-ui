@@ -190,7 +190,7 @@ copyBtn.Parent = btnBar
 local noRenderBtn = makeBtn("No Render", Color3.fromRGB(120,120,120))
 noRenderBtn.Parent = btnBar
 
--- ===== TOGGLE BUTTON (ĐÃ CHỈNH TO + QUA BÊN PHẢI) =====
+-- ===== TOGGLE BUTTON (ĐÃ CHỈNH) =====
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Parent = screenGui
 toggleBtn.Size = UDim2.new(0, 50, 0, 50)
@@ -211,6 +211,70 @@ local tStroke = Instance.new("UIStroke", toggleBtn)
 tStroke.Thickness = 1.5
 tStroke.Color = Color3.fromRGB(0,180,255)
 
+-- ===== UPDATE PLAYER COUNT =====
+local function updatePlayerCount()
+	local current = #Players:GetPlayers()
+	local max = Players.MaxPlayers
+	playerCountLabel.Text = "Players: " .. current .. "/" .. max
+end
+updatePlayerCount()
+Players.PlayerAdded:Connect(updatePlayerCount)
+Players.PlayerRemoving:Connect(updatePlayerCount)
+
+-- ===== FPS =====
+local frames, last = 0, tick()
+RunService.RenderStepped:Connect(function()
+	frames += 1
+	local now = tick()
+	if now - last >= 0.5 then
+		local fps = math.floor(frames / (now - last))
+		statsLabel.Text = "FPS: " .. fps .. " | Ping: ... ms | FPS Lock: " .. FPS_LOCK
+		frames = 0
+		last = now
+	end
+end)
+
+-- ===== PING =====
+task.spawn(function()
+	while true do
+		local pingStat = Stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
+		if pingStat then
+			statsLabel.Text = "FPS: " .. FPS_LOCK .. " | Ping: " .. math.floor(pingStat:GetValue()) .. " ms | FPS Lock: " .. FPS_LOCK
+		end
+		task.wait(0.5)
+	end
+end)
+
+-- ===== JOIN =====
+joinBtn.MouseButton1Click:Connect(function()
+	local jobId = jobBox.Text
+	if jobId and jobId ~= "" then
+		TeleportService:TeleportToPlaceInstance(game.PlaceId, jobId, player)
+	end
+end)
+
+-- ===== SPAM JOIN =====
+local spamming = false
+spamBtn.MouseButton1Click:Connect(function()
+	spamming = not spamming
+	spamBtn.Text = spamming and "Stop" or "Spam Join"
+
+	while spamming do
+		local jobId = jobBox.Text
+		if jobId and jobId ~= "" then
+			TeleportService:TeleportToPlaceInstance(game.PlaceId, jobId, player)
+		end
+		task.wait(1)
+	end
+end)
+
+-- ===== COPY JOBID =====
+copyBtn.MouseButton1Click:Connect(function()
+	if setclipboard then
+		setclipboard(game.JobId)
+	end
+end)
+
 -- ===== TOGGLE UI =====
 local visible = true
 toggleBtn.MouseButton1Click:Connect(function()
@@ -224,4 +288,68 @@ UserInputService.InputBegan:Connect(function(input, gpe)
 		visible = not visible
 		frame.Visible = visible
 	end
+end)
+
+-- ===== NO RENDER =====
+local noRenderEnabled = false
+local savedTransparency = {}
+
+local function hideObject(obj)
+	if obj:IsA("BasePart") or obj:IsA("Decal") or obj:IsA("Texture") then
+		if savedTransparency[obj] == nil then
+			savedTransparency[obj] = obj.Transparency
+		end
+		obj.Transparency = 1
+	end
+end
+
+local function restoreObject(obj)
+	if savedTransparency[obj] ~= nil then
+		obj.Transparency = savedTransparency[obj]
+		savedTransparency[obj] = nil
+	end
+end
+
+local function enableNoRender()
+	noRenderEnabled = true
+	noRenderBtn.Text = "No Render: ON"
+
+	for _,v in ipairs(Workspace:GetDescendants()) do
+		pcall(function()
+			hideObject(v)
+		end)
+	end
+end
+
+local function disableNoRender()
+	noRenderEnabled = false
+	noRenderBtn.Text = "No Render: OFF"
+
+	for obj,_ in pairs(savedTransparency) do
+		pcall(function()
+			restoreObject(obj)
+		end)
+	end
+end
+
+Workspace.DescendantAdded:Connect(function(v)
+	if noRenderEnabled then
+		pcall(function()
+			hideObject(v)
+		end)
+	end
+end)
+
+noRenderBtn.MouseButton1Click:Connect(function()
+	if noRenderEnabled then
+		disableNoRender()
+	else
+		enableNoRender()
+	end
+end)
+
+-- ===== AUTO ENABLE NO RENDER =====
+task.spawn(function()
+	task.wait(5)
+	enableNoRender()
 end)
