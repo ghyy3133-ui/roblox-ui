@@ -1,41 +1,38 @@
--- ===== FPS LOCK =====
+--===== SETTINGS =====
 local FPS_LOCK = 10
-if setfpscap then
-	setfpscap(FPS_LOCK)
-end
 
--- ===== SERVICES =====
+--===== SERVICES =====
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Stats = game:GetService("Stats")
 local UserInputService = game:GetService("UserInputService")
 local TeleportService = game:GetService("TeleportService")
 local Workspace = game:GetService("Workspace")
-local HttpService = game:GetService("HttpService")
-local CoreGui = game:GetService("CoreGui")
+local VirtualUser = game:GetService("VirtualUser")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- ===== FILE SAVE NOTE =====
-local fileName = "server_notes.json"
-local notes = {}
-
-if isfile and isfile(fileName) then
-	local data = readfile(fileName)
-	notes = HttpService:JSONDecode(data)
+--===== FPS LOCK =====
+if setfpscap then
+	setfpscap(FPS_LOCK)
 end
 
--- ===== GUI =====
+--===== ANTI AFK =====
+player.Idled:Connect(function()
+	VirtualUser:CaptureController()
+	VirtualUser:ClickButton2(Vector2.new())
+end)
+
+--===== GUI =====
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = playerGui
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
 
--- ===== MAIN FRAME =====
 local frame = Instance.new("Frame")
 frame.Parent = screenGui
-frame.Size = UDim2.new(0,360,0,300)
+frame.Size = UDim2.new(0,360,0,260)
 frame.AnchorPoint = Vector2.new(0.5,0)
 frame.Position = UDim2.new(0.5,0,0,10)
 frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
@@ -47,46 +44,16 @@ Instance.new("UICorner",frame).CornerRadius = UDim.new(0,16)
 local layout = Instance.new("UIListLayout",frame)
 layout.Padding = UDim.new(0,6)
 
-local padding = Instance.new("UIPadding",frame)
-padding.PaddingTop = UDim.new(0,8)
-padding.PaddingBottom = UDim.new(0,8)
-padding.PaddingLeft = UDim.new(0,8)
-padding.PaddingRight = UDim.new(0,8)
-
--- ===== PLAYER INFO =====
-local infoBar = Instance.new("Frame",frame)
-infoBar.Size = UDim2.new(1,0,0,40)
-infoBar.BackgroundTransparency = 1
-
-local infoLayout = Instance.new("UIListLayout",infoBar)
-infoLayout.FillDirection = Enum.FillDirection.Horizontal
-infoLayout.Padding = UDim.new(0,8)
-
-local avatar = Instance.new("ImageLabel",infoBar)
-avatar.Size = UDim2.new(0,32,0,32)
-avatar.BackgroundTransparency = 1
-avatar.Image = "rbxthumb://type=AvatarHeadShot&id="..player.UserId.."&w=150&h=150"
-
-local nameLabel = Instance.new("TextLabel",infoBar)
-nameLabel.Size = UDim2.new(1,-40,0,20)
-nameLabel.BackgroundTransparency = 1
-nameLabel.Font = Enum.Font.GothamBold
-nameLabel.TextSize = 14
-nameLabel.TextColor3 = Color3.fromRGB(255,255,255)
-nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-nameLabel.Text = player.Name
-
--- ===== STATS =====
+--===== STATS =====
 local statsLabel = Instance.new("TextLabel",frame)
 statsLabel.Size = UDim2.new(1,0,0,26)
 statsLabel.BackgroundTransparency = 1
 statsLabel.Font = Enum.Font.GothamBold
 statsLabel.TextSize = 16
 statsLabel.TextColor3 = Color3.fromRGB(255,255,255)
-statsLabel.TextXAlignment = Enum.TextXAlignment.Left
 statsLabel.Text = "FPS: ... | Ping: ..."
 
--- ===== PLAYER COUNT =====
+--===== PLAYER COUNT =====
 local playerCountLabel = Instance.new("TextLabel",frame)
 playerCountLabel.Size = UDim2.new(1,0,0,22)
 playerCountLabel.BackgroundTransparency = 1
@@ -94,7 +61,7 @@ playerCountLabel.Font = Enum.Font.Gotham
 playerCountLabel.TextSize = 13
 playerCountLabel.TextColor3 = Color3.fromRGB(180,255,180)
 
--- ===== JOBID =====
+--===== JOBID =====
 local currentJob = Instance.new("TextLabel",frame)
 currentJob.Size = UDim2.new(1,0,0,22)
 currentJob.BackgroundTransparency = 1
@@ -103,51 +70,20 @@ currentJob.TextSize = 13
 currentJob.TextColor3 = Color3.fromRGB(200,200,200)
 currentJob.Text = "Current JobId: "..game.JobId
 
--- ===== PLACEID =====
-local placeBox = Instance.new("TextBox",frame)
-placeBox.Size = UDim2.new(1,0,0,26)
-placeBox.BackgroundTransparency = 0.4
-placeBox.TextColor3 = Color3.fromRGB(200,200,255)
-placeBox.Font = Enum.Font.Gotham
-placeBox.TextSize = 13
-placeBox.TextEditable = false
-placeBox.BorderSizePixel = 0
-placeBox.Text = "PlaceId: "..game.PlaceId
-Instance.new("UICorner",placeBox).CornerRadius = UDim.new(0,10)
-
--- ===== JOB INPUT =====
+--===== JOB INPUT =====
 local jobBox = Instance.new("TextBox",frame)
 jobBox.Size = UDim2.new(1,0,0,28)
+jobBox.BackgroundColor3 = Color3.fromRGB(0,0,0)
 jobBox.BackgroundTransparency = 0.4
 jobBox.TextColor3 = Color3.fromRGB(255,255,255)
+jobBox.PlaceholderText = "Nhập JobId..."
 jobBox.Font = Enum.Font.Gotham
 jobBox.TextSize = 13
-jobBox.PlaceholderText = "Nhập JobId..."
+jobBox.ClearTextOnFocus = false
 jobBox.BorderSizePixel = 0
-Instance.new("UICorner",jobBox).CornerRadius = UDim.new(0,10)
+Instance.new("UICorner",jobBox)
 
--- ===== NOTE BOX =====
-local noteBox = Instance.new("TextBox",frame)
-noteBox.Size = UDim2.new(1,0,0,28)
-noteBox.BackgroundTransparency = 0.4
-noteBox.TextColor3 = Color3.fromRGB(255,255,255)
-noteBox.Font = Enum.Font.Gotham
-noteBox.TextSize = 13
-noteBox.PlaceholderText = "Ghi chú acc"
-noteBox.BorderSizePixel = 0
-Instance.new("UICorner",noteBox).CornerRadius = UDim.new(0,10)
-
-noteBox.Text = notes[tostring(player.UserId)] or ""
-
-noteBox.FocusLost:Connect(function()
-	local uid = tostring(player.UserId)
-	notes[uid] = noteBox.Text
-	if writefile then
-		writefile(fileName,HttpService:JSONEncode(notes))
-	end
-end)
-
--- ===== BUTTON =====
+--===== BUTTON BAR =====
 local btnBar = Instance.new("Frame",frame)
 btnBar.Size = UDim2.new(1,0,0,32)
 btnBar.BackgroundTransparency = 1
@@ -160,87 +96,71 @@ local function makeBtn(text,color)
 	local b = Instance.new("TextButton")
 	b.Size = UDim2.new(1/4,-4,1,0)
 	b.BackgroundColor3 = color
-	b.BackgroundTransparency = 0.15
 	b.TextColor3 = Color3.fromRGB(255,255,255)
 	b.Font = Enum.Font.GothamBold
 	b.TextSize = 13
 	b.Text = text
 	b.BorderSizePixel = 0
-	Instance.new("UICorner",b).CornerRadius = UDim.new(0,10)
+	Instance.new("UICorner",b)
 	return b
 end
 
 local joinBtn = makeBtn("Join",Color3.fromRGB(0,200,100))
 joinBtn.Parent = btnBar
 
-local spamBtn = makeBtn("Spam Join",Color3.fromRGB(200,80,80))
+local spamBtn = makeBtn("Spam",Color3.fromRGB(200,80,80))
 spamBtn.Parent = btnBar
 
-local copyBtn = makeBtn("Copy JobId",Color3.fromRGB(80,140,255))
+local copyBtn = makeBtn("Copy",Color3.fromRGB(80,140,255))
 copyBtn.Parent = btnBar
 
-local noRenderBtn = makeBtn("No Render",Color3.fromRGB(120,120,120))
+local noRenderBtn = makeBtn("NoRender",Color3.fromRGB(120,120,120))
 noRenderBtn.Parent = btnBar
 
--- ===== TOGGLE BUTTON =====
-local toggleBtn = Instance.new("TextButton",screenGui)
-toggleBtn.Size = UDim2.new(0,45,0,45)
+--===== TOGGLE BUTTON RIGHT =====
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Parent = screenGui
+toggleBtn.Size = UDim2.new(0,50,0,50)
 toggleBtn.AnchorPoint = Vector2.new(1,0)
 toggleBtn.Position = UDim2.new(1,-10,0,10)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
 toggleBtn.BackgroundTransparency = 0.4
-toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
+toggleBtn.Text = "≡"
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.TextSize = 22
-toggleBtn.Text = "≡"
+toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
 Instance.new("UICorner",toggleBtn)
 
--- ===== PLAYER COUNT =====
+--===== PLAYER COUNT UPDATE =====
 local function updatePlayers()
 	playerCountLabel.Text = "Players: "..#Players:GetPlayers().."/"..Players.MaxPlayers
 end
-
 updatePlayers()
 Players.PlayerAdded:Connect(updatePlayers)
 Players.PlayerRemoving:Connect(updatePlayers)
 
--- ===== FPS =====
+--===== FPS =====
 local frames,last = 0,tick()
-
 RunService.RenderStepped:Connect(function()
-	frames+=1
-	if tick()-last>=0.5 then
-		local fps = math.floor(frames/(tick()-last))
-		statsLabel.Text = "FPS: "..fps.." | Ping: ..."
+	frames += 1
+	if tick()-last >= 1 then
+		statsLabel.Text = "FPS: "..frames.." | Ping: ..."
 		frames = 0
 		last = tick()
 	end
 end)
 
--- ===== PING =====
-task.spawn(function()
-	while true do
-		local ping = Stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
-		if ping then
-			statsLabel.Text = "FPS: "..FPS_LOCK.." | Ping: "..math.floor(ping:GetValue()).." ms"
-		end
-		task.wait(0.5)
-	end
-end)
-
--- ===== JOIN =====
+--===== JOIN =====
 joinBtn.MouseButton1Click:Connect(function()
 	if jobBox.Text ~= "" then
 		TeleportService:TeleportToPlaceInstance(game.PlaceId,jobBox.Text,player)
 	end
 end)
 
--- ===== SPAM JOIN =====
+--===== SPAM JOIN =====
 local spamming = false
-
 spamBtn.MouseButton1Click:Connect(function()
 	spamming = not spamming
-	spamBtn.Text = spamming and "Stop" or "Spam Join"
-
 	while spamming do
 		if jobBox.Text ~= "" then
 			TeleportService:TeleportToPlaceInstance(game.PlaceId,jobBox.Text,player)
@@ -249,62 +169,89 @@ spamBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- ===== COPY JOBID =====
+--===== COPY JOBID =====
 copyBtn.MouseButton1Click:Connect(function()
 	if setclipboard then
 		setclipboard(game.JobId)
 	end
 end)
 
--- ===== UI TOGGLE =====
-local visible = true
-
-toggleBtn.MouseButton1Click:Connect(function()
-	visible = not visible
-	frame.Visible = visible
-end)
-
--- ===== NO RENDER =====
+--===== NO RENDER =====
 local noRender = false
 local saved = {}
 
-local function hide(obj)
-	if obj:IsA("BasePart") or obj:IsA("Decal") or obj:IsA("Texture") then
-		saved[obj] = obj.Transparency
-		obj.Transparency = 1
-	end
-end
-
-local function restore()
-	for obj,val in pairs(saved) do
-		pcall(function()
-			obj.Transparency = val
-		end)
-	end
-	saved = {}
-end
-
-noRenderBtn.MouseButton1Click:Connect(function()
-	noRender = not noRender
-	if noRender then
-		for _,v in ipairs(Workspace:GetDescendants()) do
-			hide(v)
+local function hide(v)
+	if v:IsA("BasePart") or v:IsA("Decal") then
+		if not saved[v] then
+			saved[v] = v.Transparency
 		end
-	else
-		restore()
+		v.Transparency = 1
 	end
-end)
+end
+
+local function enableNoRender()
+	noRender = true
+	for _,v in pairs(Workspace:GetDescendants()) do
+		pcall(function() hide(v) end)
+	end
+end
 
 Workspace.DescendantAdded:Connect(function(v)
-	if noRender then
-		hide(v)
+	if noRender then hide(v) end
+end)
+
+noRenderBtn.MouseButton1Click:Connect(enableNoRender)
+
+task.wait(5)
+enableNoRender()
+
+--===== INSTANT AUTO RECONNECT =====
+local reconnecting = false
+
+local function reconnect()
+	if reconnecting then return end
+	reconnecting = true
+
+	for i=1,10 do
+		pcall(function()
+			TeleportService:TeleportToPlaceInstance(game.PlaceId,game.JobId,player)
+		end)
+		task.wait(0.2)
+	end
+
+	reconnecting = false
+end
+
+game.CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+	if child.Name == "ErrorPrompt" then
+		task.wait(0.2)
+		reconnect()
 	end
 end)
 
--- ===== AUTO REJOIN =====
-CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
-	if child.Name == "ErrorPrompt" then
-		task.wait(5)
-		TeleportService:Teleport(game.PlaceId)
+player.OnTeleport:Connect(function(state)
+	if state == Enum.TeleportState.Failed then
+		reconnect()
 	end
+end)
+
+--===== AUTO SERVER HOP WHEN PING HIGH =====
+task.spawn(function()
+	while true do
+		local pingStat = Stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
+		if pingStat then
+			local ping = pingStat:GetValue()
+			if ping > 500 then
+				TeleportService:Teleport(game.PlaceId,player)
+			end
+		end
+		task.wait(5)
+	end
+end)
+
+--===== TOGGLE UI =====
+local visible = true
+toggleBtn.MouseButton1Click:Connect(function()
+	visible = not visible
+	frame.Visible = visible
 end)
