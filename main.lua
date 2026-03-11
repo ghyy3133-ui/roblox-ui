@@ -143,6 +143,7 @@ jobBox.PlaceholderText = "Nhập JobId để Join server..."
 jobBox.ClearTextOnFocus = false
 jobBox.TextXAlignment = Enum.TextXAlignment.Left
 jobBox.BorderSizePixel = 0
+jobBox.Visible = true
 
 local jobCorner = Instance.new("UICorner", jobBox)
 jobCorner.CornerRadius = UDim.new(0, 10)
@@ -190,17 +191,17 @@ copyBtn.Parent = btnBar
 local noRenderBtn = makeBtn("No Render", Color3.fromRGB(120,120,120))
 noRenderBtn.Parent = btnBar
 
--- ===== TOGGLE BUTTON (ĐÃ CHỈNH) =====
+-- ===== TOGGLE BUTTON (SHOW/HIDE UI) =====
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Parent = screenGui
-toggleBtn.Size = UDim2.new(0, 50, 0, 50)
+toggleBtn.Size = UDim2.new(0, 34, 0, 34)
 toggleBtn.AnchorPoint = Vector2.new(1, 0)
-toggleBtn.Position = UDim2.new(1, -10, 0, 10)
+toggleBtn.Position = UDim2.new(0.5, -190, 0, 10)
 toggleBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
 toggleBtn.BackgroundTransparency = 0.4
 toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
 toggleBtn.Font = Enum.Font.GothamBold
-toggleBtn.TextSize = 24
+toggleBtn.TextSize = 18
 toggleBtn.Text = "≡"
 toggleBtn.BorderSizePixel = 0
 
@@ -211,7 +212,9 @@ local tStroke = Instance.new("UIStroke", toggleBtn)
 tStroke.Thickness = 1.5
 tStroke.Color = Color3.fromRGB(0,180,255)
 
--- ===== UPDATE PLAYER COUNT =====
+-- ===== LOGIC =====
+
+-- UPDATE PLAYER COUNT
 local function updatePlayerCount()
 	local current = #Players:GetPlayers()
 	local max = Players.MaxPlayers
@@ -221,7 +224,7 @@ updatePlayerCount()
 Players.PlayerAdded:Connect(updatePlayerCount)
 Players.PlayerRemoving:Connect(updatePlayerCount)
 
--- ===== FPS =====
+-- FPS
 local frames, last = 0, tick()
 RunService.RenderStepped:Connect(function()
 	frames += 1
@@ -234,7 +237,7 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
--- ===== PING =====
+-- PING
 task.spawn(function()
 	while true do
 		local pingStat = Stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
@@ -245,7 +248,7 @@ task.spawn(function()
 	end
 end)
 
--- ===== JOIN =====
+-- JOIN
 joinBtn.MouseButton1Click:Connect(function()
 	local jobId = jobBox.Text
 	if jobId and jobId ~= "" then
@@ -253,7 +256,7 @@ joinBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- ===== SPAM JOIN =====
+-- SPAM JOIN
 local spamming = false
 spamBtn.MouseButton1Click:Connect(function()
 	spamming = not spamming
@@ -268,14 +271,14 @@ spamBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- ===== COPY JOBID =====
+-- COPY CURRENT JOBID
 copyBtn.MouseButton1Click:Connect(function()
 	if setclipboard then
 		setclipboard(game.JobId)
 	end
 end)
 
--- ===== TOGGLE UI =====
+-- TOGGLE UI
 local visible = true
 toggleBtn.MouseButton1Click:Connect(function()
 	visible = not visible
@@ -290,7 +293,7 @@ UserInputService.InputBegan:Connect(function(input, gpe)
 	end
 end)
 
--- ===== NO RENDER =====
+-- ===== NO RENDER (HIDE MAP) =====
 local noRenderEnabled = false
 local savedTransparency = {}
 
@@ -318,6 +321,17 @@ local function enableNoRender()
 		pcall(function()
 			hideObject(v)
 		end)
+	end
+
+	if getnilinstances then
+		for _,v in ipairs(getnilinstances()) do
+			pcall(function()
+				hideObject(v)
+				for _,v1 in ipairs(v:GetDescendants()) do
+					hideObject(v1)
+				end
+			end)
+		end
 	end
 end
 
@@ -348,8 +362,8 @@ noRenderBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- ===== AUTO ENABLE NO RENDER =====
+-- ===== AUTO ENABLE NO RENDER AFTER JOIN SERVER =====
 task.spawn(function()
-	task.wait(5)
+	task.wait(5) -- đợi map load xong
 	enableNoRender()
 end)
