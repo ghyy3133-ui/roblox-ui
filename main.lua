@@ -2,6 +2,7 @@ local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TeleportService = game:GetService("TeleportService")
+local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 
@@ -13,19 +14,46 @@ end
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MyCustomHub"
 ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
 
--- Bảng chính gọn gàng hơn (300x280)
+-- Bảng chính (Đặt ở trên cùng chính giữa)
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 300, 0, 280)
-MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Position = UDim2.new(0.5, -150, 0, 20) -- Trên cùng chính giữa
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.BackgroundTransparency = 0.4
 MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true -- Chức năng kéo (cơ bản)
 MainFrame.Parent = ScreenGui
 
+-- Chức năng kéo mượt mà hơn (Smooth Drag)
+local function makeDraggable(gui)
+    local dragging, dragInput, dragStart, startPos
+    gui.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = gui.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    gui.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+makeDraggable(MainFrame)
+
 local UIStroke = Instance.new("UIStroke")
-UIStroke.Color = Color3.fromRGB(255, 105, 180)
+UIStroke.Color = Color3.fromRGB(255, 105, 180) -- Viền hồng
 UIStroke.Thickness = 1.8
 UIStroke.Parent = MainFrame
 
@@ -33,7 +61,7 @@ local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 6)
 UICorner.Parent = MainFrame
 
--- Nút Toggle (Nhỏ xinh ở góc)
+-- Nút Toggle Show/Hide
 local ToggleUIBtn = Instance.new("TextButton")
 ToggleUIBtn.Size = UDim2.new(0, 80, 0, 25)
 ToggleUIBtn.Position = UDim2.new(0, 10, 0, 10)
@@ -63,7 +91,7 @@ local function createLabel(text, posY)
     return label
 end
 
--- Info Section
+-- Thông tin
 local NameLabel = createLabel("User: " .. player.Name, 15)
 local FPSLabel = createLabel("FPS: ...", 35)
 local PingLabel = createLabel("Ping: ...", 55)
@@ -84,7 +112,7 @@ JobInput.TextSize = 12
 JobInput.Parent = MainFrame
 Instance.new("UICorner", JobInput)
 
--- HÀNG NÚT CHỨC NĂNG (Copy & Join)
+-- Hàng nút Copy & Join
 local ButtonFrame = Instance.new("Frame")
 ButtonFrame.Size = UDim2.new(1, -20, 0, 30)
 ButtonFrame.Position = UDim2.new(0, 10, 0, 165)
@@ -112,7 +140,7 @@ JoinBtn.TextSize = 12
 JoinBtn.Parent = ButtonFrame
 Instance.new("UICorner", JoinBtn)
 
--- HÀNG NO RENDER (Riêng biệt bên dưới để nổi bật)
+-- Hàng No Render (Mặc định ON)
 local NoRenderBtn = Instance.new("TextButton")
 NoRenderBtn.Size = UDim2.new(1, -20, 0, 35)
 NoRenderBtn.Position = UDim2.new(0, 10, 0, 210)
@@ -124,7 +152,7 @@ NoRenderBtn.TextSize = 13
 NoRenderBtn.Parent = MainFrame
 Instance.new("UICorner", NoRenderBtn)
 
--- Logic Functions
+-- LOGIC
 CopyJobBtn.MouseButton1Click:Connect(function()
     if setclipboard then setclipboard(game.JobId) end
     CopyJobBtn.Text = "Copied!"
@@ -162,8 +190,7 @@ local function toggleRender(state)
     end
 end
 
--- Khởi tạo mặc định ON
-toggleRender(true)
+toggleRender(true) -- Chạy ngay khi execute
 
 NoRenderBtn.MouseButton1Click:Connect(function()
     noRenderEnabled = not noRenderEnabled
@@ -178,7 +205,7 @@ NoRenderBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Loop Update FPS/Ping
+-- FPS & Ping Loop
 local TimeFunction = RunService:IsRunning() and time or os.clock
 local LastIteration, Start = TimeFunction(), TimeFunction()
 local FrameUpdateTable = {}
