@@ -19,7 +19,7 @@ ScreenGui.Name = "MyCustomHub"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
--- BẢNG CHÍNH (Thu gọn chiều cao: 250x350)
+-- BẢNG CHÍNH (250x350)
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 250, 0, 350)
 MainFrame.Position = UDim2.new(0.5, -125, 0, 5)
@@ -45,18 +45,15 @@ UserInputService.InputChanged:Connect(function(input)
     if dragToggle and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local delta = input.Position - dragStart
         local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        TweenService:Create(MainFrame, TweenInfo.new(0.15), {Position = position}):Play()
+        TweenService:Create(MainFrame, TweenInfo.new(0.12, Enum.EasingStyle.Quart), {Position = position}):Play()
     end
 end)
 
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 6)
 local UIStroke = Instance.new("UIStroke")
 UIStroke.Color = Color3.fromRGB(255, 105, 180)
 UIStroke.Thickness = 1.5
 UIStroke.Parent = MainFrame
-
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 6)
-UICorner.Parent = MainFrame
 
 -- AVATAR & NAME
 local AvatarImage = Instance.new("ImageLabel")
@@ -78,7 +75,7 @@ NameLabel.TextSize = 14
 NameLabel.TextXAlignment = Enum.TextXAlignment.Left
 NameLabel.Parent = MainFrame
 
--- DÒNG STATS TỔNG HỢP (FPS | PING | PLR)
+-- DÒNG STATS TỔNG HỢP (ĐÃ GỘP)
 local StatsLabel = Instance.new("TextLabel")
 StatsLabel.Size = UDim2.new(1, -20, 0, 20)
 StatsLabel.Position = UDim2.new(0, 10, 0, 65)
@@ -86,7 +83,7 @@ StatsLabel.BackgroundTransparency = 1
 StatsLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
 StatsLabel.Text = "FPS: -- | Ping: -- | PLR: --"
 StatsLabel.Font = Enum.Font.GothamSemibold
-StatsLabel.TextSize = 11
+StatsLabel.TextSize = 10.5
 StatsLabel.TextXAlignment = Enum.TextXAlignment.Left
 StatsLabel.Parent = MainFrame
 
@@ -104,19 +101,18 @@ local function createSmallLabel(text, posY)
     label.Parent = MainFrame
     return label
 end
-
-local PlaceLabel = createSmallLabel("Place ID: " .. game.PlaceId, 85)
+createSmallLabel("Place ID: " .. game.PlaceId, 85)
 local JobIdLabel = createSmallLabel("Job ID: " .. game.JobId, 101)
 JobIdLabel.TextScaled = true
 
--- Ô NOTE
+-- NOTE SECTION
 createSmallLabel("📝 Ghi chú cày acc:", 125).TextColor3 = Color3.fromRGB(255, 255, 255)
 local NoteBox = Instance.new("TextBox")
 NoteBox.Size = UDim2.new(1, -20, 0, 50)
 NoteBox.Position = UDim2.new(0, 10, 0, 145)
 NoteBox.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 NoteBox.TextColor3 = Color3.fromRGB(200, 200, 200)
-NoteBox.PlaceholderText = "Nhập nội dung cày..."
+NoteBox.PlaceholderText = "Ghi chú tại đây..."
 NoteBox.Font = Enum.Font.Gotham
 NoteBox.TextSize = 11
 NoteBox.TextWrapped = true
@@ -125,11 +121,7 @@ NoteBox.Parent = MainFrame
 Instance.new("UICorner", NoteBox)
 
 local function saveNote() if writefile then writefile(fileName, NoteBox.Text) end end
-local function loadNote()
-    if isfile and isfile(fileName) then NoteBox.Text = readfile(fileName)
-    else NoteBox.Text = "" end
-end
-loadNote()
+if isfile and isfile(fileName) then NoteBox.Text = readfile(fileName) else NoteBox.Text = "" end
 NoteBox.FocusLost:Connect(saveNote)
 
 -- JOIN SECTION
@@ -138,7 +130,7 @@ JobInput.Size = UDim2.new(1, -20, 0, 25)
 JobInput.Position = UDim2.new(0, 10, 0, 210)
 JobInput.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 JobInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-JobInput.PlaceholderText = "Dán Job ID vào đây..."
+JobInput.PlaceholderText = "Dán Job ID..."
 JobInput.Font = Enum.Font.Gotham
 JobInput.TextSize = 11
 JobInput.Parent = MainFrame
@@ -171,7 +163,7 @@ JoinBtn.TextSize = 11
 JoinBtn.Parent = BtnFrame
 Instance.new("UICorner", JoinBtn)
 
--- NO RENDER TOGGLE
+-- NO RENDER
 local NoRenderBtn = Instance.new("TextButton")
 NoRenderBtn.Size = UDim2.new(1, -20, 0, 35)
 NoRenderBtn.Position = UDim2.new(0, 10, 0, 295)
@@ -185,31 +177,18 @@ Instance.new("UICorner", NoRenderBtn)
 -- LOGIC CHỨC NĂNG
 CopyBtn.MouseButton1Click:Connect(function()
     if setclipboard then setclipboard(game.JobId) end
-    CopyBtn.Text = "Xong!"
-    task.wait(1)
-    CopyBtn.Text = "Copy ID"
+    CopyBtn.Text = "Xong!"; task.wait(1); CopyBtn.Text = "Copy ID"
 end)
 
 JoinBtn.MouseButton1Click:Connect(function()
-    if JobInput.Text ~= "" then
-        TeleportService:TeleportToPlaceInstance(game.PlaceId, JobInput.Text, player)
-    end
+    if JobInput.Text ~= "" then TeleportService:TeleportToPlaceInstance(game.PlaceId, JobInput.Text, player) end
 end)
 
 local noRenderEnabled = true
 local noRenderConn = nil
-
 local function toggleRender(state)
     if state then
         for _, v in next, workspace:GetDescendants() do pcall(function() v.Transparency = 1 end) end
-        if getnilinstances then
-            for _, v in next, getnilinstances() do
-                pcall(function() 
-                    v.Transparency = 1 
-                    for _, d in next, v:GetDescendants() do d.Transparency = 1 end
-                end)
-            end
-        end
         noRenderConn = workspace.DescendantAdded:Connect(function(v) pcall(function() v.Transparency = 1 end) end)
     else
         if noRenderConn then noRenderConn:Disconnect() noRenderConn = nil end
@@ -218,21 +197,16 @@ local function toggleRender(state)
         end
     end
 end
-
 toggleRender(true)
 
 NoRenderBtn.MouseButton1Click:Connect(function()
     noRenderEnabled = not noRenderEnabled
-    if noRenderEnabled then
-        NoRenderBtn.Text = "No Render: ON"; NoRenderBtn.BackgroundColor3 = Color3.fromRGB(20, 60, 20)
-        toggleRender(true)
-    else
-        NoRenderBtn.Text = "No Render: OFF"; NoRenderBtn.BackgroundColor3 = Color3.fromRGB(60, 20, 20)
-        toggleRender(false)
-    end
+    NoRenderBtn.Text = noRenderEnabled and "No Render: ON" or "No Render: OFF"
+    NoRenderBtn.BackgroundColor3 = noRenderEnabled and Color3.fromRGB(20, 60, 20) or Color3.fromRGB(60, 20, 20)
+    toggleRender(noRenderEnabled)
 end)
 
--- NÚT SHOW/HIDE MENU
+-- NÚT MENU (HIỆN/ẨN)
 local ShowHideBtn = Instance.new("TextButton")
 ShowHideBtn.Size = UDim2.new(0, 60, 0, 22)
 ShowHideBtn.Position = UDim2.new(0, 10, 0, 5)
@@ -245,23 +219,23 @@ ShowHideBtn.Parent = ScreenGui
 Instance.new("UICorner", ShowHideBtn)
 ShowHideBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
 
--- LOOP UPDATE STATS (FPS | PING | PLR)
-local TimeFunction = RunService:IsRunning() and time or os.clock
-local LastIteration, Start = TimeFunction(), TimeFunction()
-local FrameUpdateTable = {}
+-- LOOP UPDATE STATS (FIXED FPS)
+local lastUpdate = os.clock()
+local frameCount = 0
+local currentFps = 0
 
-RunService.RenderStepped:Connect(function()
-    LastIteration = TimeFunction()
-    for i = #FrameUpdateTable, 1, -1 do FrameUpdateTable[i+1] = FrameUpdateTable[i] >= LastIteration-1 and FrameUpdateTable[i] or nil end
-    FrameUpdateTable[1] = LastIteration
-    
-    local fps = math.floor(TimeFunction() - Start >= 1 and #FrameUpdateTable or #FrameUpdateTable / (TimeFunction() - Start))
+RunService.RenderStepped:Connect(function(dt)
+    frameCount = frameCount + 1
+    if os.clock() - lastUpdate >= 1 then
+        currentFps = frameCount
+        frameCount = 0
+        lastUpdate = os.clock()
+    end
     
     local ping = "N/A"
     pcall(function() ping = math.round(player:GetNetworkPing() * 1000) end)
-    
     local playerCount = #Players:GetPlayers()
     local maxPlayers = Players.MaxPlayers
     
-    StatsLabel.Text = string.format("FPS: %s | Ping: %s ms | PLR: %d/%d", tostring(fps), tostring(ping), playerCount, maxPlayers)
+    StatsLabel.Text = string.format("FPS: %d | Ping: %s ms | PLR: %d/%d", currentFps, tostring(ping), playerCount, maxPlayers)
 end)
