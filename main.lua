@@ -3,12 +3,13 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TeleportService = game:GetService("TeleportService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local userId = player.UserId
 local fileName = "Note_" .. userId .. ".txt"
 
--- Xóa GUI cũ để tránh chồng chéo
+-- Xóa GUI cũ
 if CoreGui:FindFirstChild("MyCustomHub") then
     CoreGui.MyCustomHub:Destroy()
 end
@@ -18,48 +19,36 @@ ScreenGui.Name = "MyCustomHub"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
--- BẢNG CHÍNH (Gọn: 250x370, vị trí trên cùng chính giữa)
+-- BẢNG CHÍNH (Thu gọn chiều cao: 250x350)
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 250, 0, 370)
+MainFrame.Size = UDim2.new(0, 250, 0, 350)
 MainFrame.Position = UDim2.new(0.5, -125, 0, 5)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.BackgroundTransparency = 0.4
 MainFrame.BorderSizePixel = 0
-MainFrame.Active = true -- Bắt buộc để nhận input
+MainFrame.Active = true
 MainFrame.Parent = ScreenGui
 
--- HỆ THỐNG KÉO THẢ (DRAG) MỚI - ĐÃ FIX LỖI
-local dragToggle = nil
-local dragSpeed = 0.15
-local dragStart = nil
-local startPos = nil
-
-local function updateInput(input)
-    local delta = input.Position - dragStart
-    local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    game:GetService("TweenService"):Create(MainFrame, TweenInfo.new(dragSpeed), {Position = position}):Play()
-end
-
+-- HỆ THỐNG KÉO THẢ (DRAG)
+local dragToggle, dragStart, startPos
 MainFrame.InputBegan:Connect(function(input)
     if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
         dragToggle = true
         dragStart = input.Position
         startPos = MainFrame.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragToggle = false
-            end
+            if input.UserInputState == Enum.UserInputState.End then dragToggle = false end
         end)
     end
 end)
-
 UserInputService.InputChanged:Connect(function(input)
     if dragToggle and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        updateInput(input)
+        local delta = input.Position - dragStart
+        local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        TweenService:Create(MainFrame, TweenInfo.new(0.15), {Position = position}):Play()
     end
 end)
 
--- Giao diện (Viền hồng, bo góc)
 local UIStroke = Instance.new("UIStroke")
 UIStroke.Color = Color3.fromRGB(255, 105, 180)
 UIStroke.Thickness = 1.5
@@ -69,7 +58,7 @@ local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 6)
 UICorner.Parent = MainFrame
 
--- AVATAR
+-- AVATAR & NAME
 local AvatarImage = Instance.new("ImageLabel")
 AvatarImage.Size = UDim2.new(0, 50, 0, 50)
 AvatarImage.Position = UDim2.new(0, 10, 0, 10)
@@ -89,35 +78,45 @@ NameLabel.TextSize = 14
 NameLabel.TextXAlignment = Enum.TextXAlignment.Left
 NameLabel.Parent = MainFrame
 
--- THÔNG TIN SERVER
-local function createLabel(text, posY)
+-- DÒNG STATS TỔNG HỢP (FPS | PING | PLR)
+local StatsLabel = Instance.new("TextLabel")
+StatsLabel.Size = UDim2.new(1, -20, 0, 20)
+StatsLabel.Position = UDim2.new(0, 10, 0, 65)
+StatsLabel.BackgroundTransparency = 1
+StatsLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+StatsLabel.Text = "FPS: -- | Ping: -- | PLR: --"
+StatsLabel.Font = Enum.Font.GothamSemibold
+StatsLabel.TextSize = 11
+StatsLabel.TextXAlignment = Enum.TextXAlignment.Left
+StatsLabel.Parent = MainFrame
+
+-- ID LABELS
+local function createSmallLabel(text, posY)
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, -20, 0, 16)
     label.Position = UDim2.new(0, 10, 0, posY)
     label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.fromRGB(220, 220, 220)
+    label.TextColor3 = Color3.fromRGB(180, 180, 180)
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Font = Enum.Font.GothamSemibold
-    label.TextSize = 11
+    label.TextSize = 10
     label.Text = text
     label.Parent = MainFrame
     return label
 end
 
-local FPSLabel = createLabel("FPS: ...", 70)
-local PingLabel = createLabel("Ping: ...", 88)
-local PlaceLabel = createLabel("Place ID: " .. game.PlaceId, 106)
-local JobIdLabel = createLabel("Job ID: " .. game.JobId, 124)
+local PlaceLabel = createSmallLabel("Place ID: " .. game.PlaceId, 85)
+local JobIdLabel = createSmallLabel("Job ID: " .. game.JobId, 101)
 JobIdLabel.TextScaled = true
 
--- Ô NOTE (Persistence - Ghi chú cày acc)
-createLabel("📝 Ghi chú cày acc:", 150)
+-- Ô NOTE
+createSmallLabel("📝 Ghi chú cày acc:", 125).TextColor3 = Color3.fromRGB(255, 255, 255)
 local NoteBox = Instance.new("TextBox")
-NoteBox.Size = UDim2.new(1, -20, 0, 45)
-NoteBox.Position = UDim2.new(0, 10, 0, 170)
+NoteBox.Size = UDim2.new(1, -20, 0, 50)
+NoteBox.Position = UDim2.new(0, 10, 0, 145)
 NoteBox.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 NoteBox.TextColor3 = Color3.fromRGB(200, 200, 200)
-NoteBox.PlaceholderText = "Đang tải dữ liệu..."
+NoteBox.PlaceholderText = "Nhập nội dung cày..."
 NoteBox.Font = Enum.Font.Gotham
 NoteBox.TextSize = 11
 NoteBox.TextWrapped = true
@@ -133,13 +132,13 @@ end
 loadNote()
 NoteBox.FocusLost:Connect(saveNote)
 
--- JOIN SERVER SECTION
+-- JOIN SECTION
 local JobInput = Instance.new("TextBox")
 JobInput.Size = UDim2.new(1, -20, 0, 25)
-JobInput.Position = UDim2.new(0, 10, 0, 230)
+JobInput.Position = UDim2.new(0, 10, 0, 210)
 JobInput.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 JobInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-JobInput.PlaceholderText = "Nhập Job ID..."
+JobInput.PlaceholderText = "Dán Job ID vào đây..."
 JobInput.Font = Enum.Font.Gotham
 JobInput.TextSize = 11
 JobInput.Parent = MainFrame
@@ -147,7 +146,7 @@ Instance.new("UICorner", JobInput)
 
 local BtnFrame = Instance.new("Frame")
 BtnFrame.Size = UDim2.new(1, -20, 0, 25)
-BtnFrame.Position = UDim2.new(0, 10, 0, 265)
+BtnFrame.Position = UDim2.new(0, 10, 0, 245)
 BtnFrame.BackgroundTransparency = 1
 BtnFrame.Parent = MainFrame
 
@@ -166,21 +165,20 @@ JoinBtn.Size = UDim2.new(0.48, 0, 1, 0)
 JoinBtn.Position = UDim2.new(0.52, 0, 0, 0)
 JoinBtn.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
 JoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-JoinBtn.Text = "Join"
+JoinBtn.Text = "Join Server"
 JoinBtn.Font = Enum.Font.GothamBold
 JoinBtn.TextSize = 11
 JoinBtn.Parent = BtnFrame
 Instance.new("UICorner", JoinBtn)
 
--- NO RENDER TOGGLE (Mặc định ON)
+-- NO RENDER TOGGLE
 local NoRenderBtn = Instance.new("TextButton")
 NoRenderBtn.Size = UDim2.new(1, -20, 0, 35)
-NoRenderBtn.Position = UDim2.new(0, 10, 0, 310)
+NoRenderBtn.Position = UDim2.new(0, 10, 0, 295)
 NoRenderBtn.BackgroundColor3 = Color3.fromRGB(20, 60, 20)
 NoRenderBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 NoRenderBtn.Text = "No Render: ON"
 NoRenderBtn.Font = Enum.Font.GothamBold
-NoRenderBtn.TextSize = 12
 NoRenderBtn.Parent = MainFrame
 Instance.new("UICorner", NoRenderBtn)
 
@@ -234,9 +232,9 @@ NoRenderBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Nút Show/Hide Menu (Góc trên trái)
+-- NÚT SHOW/HIDE MENU
 local ShowHideBtn = Instance.new("TextButton")
-ShowHideBtn.Size = UDim2.new(0, 60, 0, 25)
+ShowHideBtn.Size = UDim2.new(0, 60, 0, 22)
 ShowHideBtn.Position = UDim2.new(0, 10, 0, 5)
 ShowHideBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 ShowHideBtn.TextColor3 = Color3.fromRGB(255, 105, 180)
@@ -247,7 +245,7 @@ ShowHideBtn.Parent = ScreenGui
 Instance.new("UICorner", ShowHideBtn)
 ShowHideBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
 
--- LOOP UPDATE FPS & PING
+-- LOOP UPDATE STATS (FPS | PING | PLR)
 local TimeFunction = RunService:IsRunning() and time or os.clock
 local LastIteration, Start = TimeFunction(), TimeFunction()
 local FrameUpdateTable = {}
@@ -256,9 +254,14 @@ RunService.RenderStepped:Connect(function()
     LastIteration = TimeFunction()
     for i = #FrameUpdateTable, 1, -1 do FrameUpdateTable[i+1] = FrameUpdateTable[i] >= LastIteration-1 and FrameUpdateTable[i] or nil end
     FrameUpdateTable[1] = LastIteration
+    
     local fps = math.floor(TimeFunction() - Start >= 1 and #FrameUpdateTable or #FrameUpdateTable / (TimeFunction() - Start))
-    FPSLabel.Text = "FPS: " .. tostring(fps)
+    
     local ping = "N/A"
     pcall(function() ping = math.round(player:GetNetworkPing() * 1000) end)
-    PingLabel.Text = "Ping: " .. tostring(ping) .. " ms"
+    
+    local playerCount = #Players:GetPlayers()
+    local maxPlayers = Players.MaxPlayers
+    
+    StatsLabel.Text = string.format("FPS: %s | Ping: %s ms | PLR: %d/%d", tostring(fps), tostring(ping), playerCount, maxPlayers)
 end)
