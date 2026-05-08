@@ -15,10 +15,9 @@ end
 
 -- 2. Khởi tạo GUI
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "HubScript"
+ScreenGui.Name = "HorizontalHub"
 ScreenGui.ResetOnSpawn = false
 
--- Bypass cho các executor khác nhau
 local success, _ = pcall(function()
     ScreenGui.Parent = CoreGui
 end)
@@ -26,7 +25,7 @@ if not success then
     ScreenGui.Parent = player:WaitForChild("PlayerGui")
 end
 
--- White Screen (Màn hình trắng, chạy ngay lập tức)
+-- White Screen (Chạy ngay lập tức)
 local WhiteScreen = Instance.new("Frame")
 WhiteScreen.Name = "WhiteScreen"
 WhiteScreen.Size = UDim2.new(10, 0, 10, 0)
@@ -36,38 +35,30 @@ WhiteScreen.ZIndex = 9999
 WhiteScreen.Visible = true
 WhiteScreen.Parent = ScreenGui
 
--- Nút Toggle (Bật/Tắt bảng điều khiển - Có thể kéo thả)
+-- Nút Toggle Menu (Có thể kéo thả)
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Name = "ToggleBtn"
-ToggleBtn.Size = UDim2.new(0, 60, 0, 60)
-ToggleBtn.Position = UDim2.new(0, 20, 0.5, -30)
+ToggleBtn.Size = UDim2.new(0, 50, 0, 30)
+ToggleBtn.Position = UDim2.new(0, 10, 0, 10)
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 ToggleBtn.BackgroundTransparency = 0.5
 ToggleBtn.Text = "Menu"
 ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.TextSize = 14
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleBtn.ZIndex = 10000
 ToggleBtn.Parent = ScreenGui
+Instance.new("UIStroke", ToggleBtn).Color = Color3.fromRGB(0, 170, 255)
+Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(0, 5)
 
-local ToggleStroke = Instance.new("UIStroke")
-ToggleStroke.Color = Color3.fromRGB(0, 170, 255)
-ToggleStroke.Thickness = 2
-ToggleStroke.Parent = ToggleBtn
-
-local ToggleCorner = Instance.new("UICorner")
-ToggleCorner.CornerRadius = UDim.new(0, 10)
-ToggleCorner.Parent = ToggleBtn
-
--- Bảng điều khiển chính (Nền trong suốt, viền xanh - Có thể kéo thả)
+-- Bảng điều khiển CHÍNH (DẠNG NGANG)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 300, 0, 420)
-MainFrame.Position = UDim2.new(0.5, -150, 0.5, -210)
+MainFrame.Size = UDim2.new(0, 650, 0, 100) -- Chiều ngang rộng, chiều dọc thấp
+MainFrame.Position = UDim2.new(0.5, -325, 0.1, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 MainFrame.BackgroundTransparency = 0.3
 MainFrame.ZIndex = 10000
-MainFrame.Visible = false -- Ẩn lúc đầu để không bị đè lên White Screen
+MainFrame.Visible = false
 MainFrame.Parent = ScreenGui
 
 local MainStroke = Instance.new("UIStroke")
@@ -79,200 +70,183 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 10)
 MainCorner.Parent = MainFrame
 
--- Cấu trúc tự động sắp xếp layout trong MainFrame
+-- Tự động sắp xếp các Section nằm ngang
 local UIListLayout = Instance.new("UIListLayout")
 UIListLayout.Parent = MainFrame
+UIListLayout.FillDirection = Enum.FillDirection.Horizontal
 UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout.Padding = UDim.new(0, 8)
-UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.Padding = UDim.new(0, 10)
+UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 
 local UIPadding = Instance.new("UIPadding")
-UIPadding.PaddingTop = UDim.new(0, 15)
-UIPadding.PaddingBottom = UDim.new(0, 15)
+UIPadding.PaddingLeft = UDim.new(0, 10)
+UIPadding.PaddingRight = UDim.new(0, 10)
 UIPadding.Parent = MainFrame
 
--- Hàm tạo các dòng Text (Label)
-local function createLabel(text)
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, -20, 0, 25)
-    lbl.BackgroundTransparency = 1
-    lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-    lbl.Font = Enum.Font.GothamMedium
-    lbl.TextSize = 14
-    lbl.Text = text
-    lbl.ZIndex = 10001
-    lbl.Parent = MainFrame
-    return lbl
-end
+-- Section 1: Avatar & Tên
+local Section1 = Instance.new("Frame")
+Section1.Size = UDim2.new(0, 150, 1, -10)
+Section1.BackgroundTransparency = 1
+Section1.Parent = MainFrame
 
--- Hiển thị Avatar
 local AvatarImg = Instance.new("ImageLabel")
-AvatarImg.Size = UDim2.new(0, 80, 0, 80)
+AvatarImg.Size = UDim2.new(0, 60, 0, 60)
+AvatarImg.Position = UDim2.new(0, 0, 0.5, -30)
 AvatarImg.BackgroundTransparency = 1
-AvatarImg.ZIndex = 10001
-AvatarImg.Parent = MainFrame
-local avatarCorner = Instance.new("UICorner")
-avatarCorner.CornerRadius = UDim.new(1, 0) -- Làm tròn ảnh
-avatarCorner.Parent = AvatarImg
+AvatarImg.Parent = Section1
+Instance.new("UICorner", AvatarImg).CornerRadius = UDim.new(1, 0)
 pcall(function()
     AvatarImg.Image = Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
 end)
 
--- Tạo các nhãn thông số
-local NameLbl = createLabel("Name: " .. player.Name)
-local FpsLbl = createLabel("FPS: ...")
-local PingLbl = createLabel("Ping: ...")
-local PlayersLbl = createLabel("Players: " .. #Players:GetPlayers())
-local PlaceIdLbl = createLabel("Place ID: " .. game.PlaceId)
+local NameLbl = Instance.new("TextLabel")
+NameLbl.Size = UDim2.new(1, -70, 1, 0)
+NameLbl.Position = UDim2.new(0, 70, 0, 0)
+NameLbl.BackgroundTransparency = 1
+NameLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+NameLbl.Font = Enum.Font.GothamBold
+NameLbl.TextSize = 12
+NameLbl.Text = player.DisplayName
+NameLbl.TextWrapped = true
+NameLbl.Parent = Section1
 
--- Nút Copy Job ID
+-- Section 2: Thông số (FPS, Ping, Player, IDs)
+local Section2 = Instance.new("Frame")
+Section2.Size = UDim2.new(0, 220, 1, -10)
+Section2.BackgroundTransparency = 1
+Section2.Parent = MainFrame
+
+local Section2Layout = Instance.new("UIListLayout")
+Section2Layout.Parent = Section2
+Section2Layout.SortOrder = Enum.SortOrder.LayoutOrder
+Section2Layout.Padding = UDim.new(0, 2)
+
+local function createSmallLabel(text, parent)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, 0, 0, 14)
+    lbl.BackgroundTransparency = 1
+    lbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+    lbl.Font = Enum.Font.GothamMedium
+    lbl.TextSize = 10
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Text = text
+    lbl.Parent = parent
+    return lbl
+end
+
+local FpsLbl = createSmallLabel("FPS: ...", Section2)
+local PingLbl = createSmallLabel("Ping: ...", Section2)
+local PlayersLbl = createSmallLabel("Players: ...", Section2)
+local PlaceIdLbl = createSmallLabel("Place ID: " .. game.PlaceId, Section2)
+local CurrentJobIdLbl = createSmallLabel("Job ID: " .. game.JobId, Section2)
+CurrentJobIdLbl.TextSize = 8 -- Nhỏ hơn vì ID rất dài
+
+-- Section 3: Nút & Điều khiển
+local Section3 = Instance.new("Frame")
+Section3.Size = UDim2.new(0, 240, 1, -10)
+Section3.BackgroundTransparency = 1
+Section3.Parent = MainFrame
+
+local Section3Layout = Instance.new("UIListLayout")
+Section3Layout.Parent = Section3
+Section3Layout.Padding = UDim.new(0, 5)
+
+-- Nút Copy & White Screen (Nằm trên cùng dòng)
+local BtnRow = Instance.new("Frame")
+BtnRow.Size = UDim2.new(1, 0, 0, 25)
+BtnRow.BackgroundTransparency = 1
+BtnRow.Parent = Section3
+
 local CopyJobBtn = Instance.new("TextButton")
-CopyJobBtn.Size = UDim2.new(1, -30, 0, 30)
-CopyJobBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+CopyJobBtn.Size = UDim2.new(0.48, 0, 1, 0)
+CopyJobBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 CopyJobBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CopyJobBtn.Font = Enum.Font.GothamMedium
-CopyJobBtn.TextSize = 14
-CopyJobBtn.Text = "Copy Job ID"
-CopyJobBtn.ZIndex = 10001
-CopyJobBtn.Parent = MainFrame
-Instance.new("UICorner", CopyJobBtn).CornerRadius = UDim.new(0, 5)
+CopyJobBtn.Text = "Copy JobID"
+CopyJobBtn.TextSize = 10
+CopyJobBtn.Parent = BtnRow
+Instance.new("UICorner", CopyJobBtn)
 
--- Ô Nhập Job ID & Nút Join
-local JoinFrame = Instance.new("Frame")
-JoinFrame.Size = UDim2.new(1, -30, 0, 30)
-JoinFrame.BackgroundTransparency = 1
-JoinFrame.ZIndex = 10001
-JoinFrame.Parent = MainFrame
+local WhiteScreenBtn = Instance.new("TextButton")
+WhiteScreenBtn.Size = UDim2.new(0.48, 0, 1, 0)
+WhiteScreenBtn.Position = UDim2.new(0.52, 0, 0, 0)
+WhiteScreenBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+WhiteScreenBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+WhiteScreenBtn.Text = "Tắt White"
+WhiteScreenBtn.TextSize = 10
+WhiteScreenBtn.Parent = BtnRow
+Instance.new("UICorner", WhiteScreenBtn)
+
+-- Ô nhập Job ID & Nút Join
+local JoinRow = Instance.new("Frame")
+JoinRow.Size = UDim2.new(1, 0, 0, 25)
+JoinRow.BackgroundTransparency = 1
+JoinRow.Parent = Section3
 
 local JobIdInput = Instance.new("TextBox")
-JobIdInput.Size = UDim2.new(0.65, -5, 1, 0)
-JobIdInput.Position = UDim2.new(0, 0, 0, 0)
-JobIdInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+JobIdInput.Size = UDim2.new(0.7, 0, 1, 0)
+JobIdInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 JobIdInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-JobIdInput.Font = Enum.Font.Gotham
-JobIdInput.TextSize = 12
-JobIdInput.PlaceholderText = "Nhập Job ID vào đây..."
+JobIdInput.PlaceholderText = "Nhập Job ID..."
 JobIdInput.Text = ""
-JobIdInput.ClearTextOnFocus = false
-JobIdInput.ZIndex = 10001
-JobIdInput.Parent = JoinFrame
-Instance.new("UICorner", JobIdInput).CornerRadius = UDim.new(0, 5)
+JobIdInput.TextSize = 10
+JobIdInput.Parent = JoinRow
+Instance.new("UICorner", JobIdInput)
 
 local JoinBtn = Instance.new("TextButton")
-JoinBtn.Size = UDim2.new(0.35, 0, 1, 0)
-JoinBtn.Position = UDim2.new(0.65, 5, 0, 0)
+JoinBtn.Size = UDim2.new(0.25, 0, 1, 0)
+JoinBtn.Position = UDim2.new(0.75, 0, 0, 0)
 JoinBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 JoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-JoinBtn.Font = Enum.Font.GothamBold
-JoinBtn.TextSize = 14
 JoinBtn.Text = "Join"
-JoinBtn.ZIndex = 10001
-JoinBtn.Parent = JoinFrame
-Instance.new("UICorner", JoinBtn).CornerRadius = UDim.new(0, 5)
+JoinBtn.TextSize = 10
+JoinBtn.Parent = JoinRow
+Instance.new("UICorner", JoinBtn)
 
--- Nút Bật/Tắt White Screen
-local WhiteScreenBtn = Instance.new("TextButton")
-WhiteScreenBtn.Size = UDim2.new(1, -30, 0, 30)
-WhiteScreenBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
-WhiteScreenBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-WhiteScreenBtn.Font = Enum.Font.GothamBold
-WhiteScreenBtn.TextSize = 14
-WhiteScreenBtn.Text = "Tắt White Screen"
-WhiteScreenBtn.ZIndex = 10001
-WhiteScreenBtn.Parent = MainFrame
-Instance.new("UICorner", WhiteScreenBtn).CornerRadius = UDim.new(0, 5)
-
--- 3. Logic Vận Hành (FPS, Ping)
+-- 3. Logic Vận Hành
 local frames = 0
-RunService.RenderStepped:Connect(function()
-    frames = frames + 1
-end)
+RunService.RenderStepped:Connect(function() frames = frames + 1 end)
 
 task.spawn(function()
     while task.wait(1) do
-        -- Tính FPS
         FpsLbl.Text = "FPS: " .. frames
         frames = 0
-        
-        -- Tính Ping (sẽ phụ thuộc vào Network Stats)
         local ping = 0
-        pcall(function()
-            ping = string.split(Stats.Network.ServerStatsItem["Data Ping"]:GetValueString(), " ")[1]
-        end)
+        pcall(function() ping = string.split(Stats.Network.ServerStatsItem["Data Ping"]:GetValueString(), " ")[1] end)
         PingLbl.Text = "Ping: " .. tostring(ping) .. " ms"
-        
-        -- Đếm Players
         PlayersLbl.Text = "Players: " .. #Players:GetPlayers() .. "/" .. Players.MaxPlayers
     end
 end)
 
--- 4. Chức năng các nút bấm
-ToggleBtn.MouseButton1Click:Connect(function()
-    MainFrame.Visible = not MainFrame.Visible
-end)
+ToggleBtn.MouseButton1Click:Connect(function() MainFrame.Visible = not MainFrame.Visible end)
 
 CopyJobBtn.MouseButton1Click:Connect(function()
-    if setclipboard then
-        setclipboard(game.JobId)
-        CopyJobBtn.Text = "Đã Copy!"
-        task.wait(1.5)
-        CopyJobBtn.Text = "Copy Job ID"
-    else
-        CopyJobBtn.Text = "Lỗi: Executor không hỗ trợ"
-        task.wait(1.5)
-        CopyJobBtn.Text = "Copy Job ID"
-    end
+    if setclipboard then setclipboard(game.JobId) end
 end)
 
 JoinBtn.MouseButton1Click:Connect(function()
-    local jobId = JobIdInput.Text
-    if jobId and jobId ~= "" then
-        TeleportService:TeleportToPlaceInstance(game.PlaceId, jobId, player)
-    end
+    if JobIdInput.Text ~= "" then TeleportService:TeleportToPlaceInstance(game.PlaceId, JobIdInput.Text, player) end
 end)
 
 WhiteScreenBtn.MouseButton1Click:Connect(function()
     WhiteScreen.Visible = not WhiteScreen.Visible
-    if WhiteScreen.Visible then
-        WhiteScreenBtn.Text = "Tắt White Screen"
-        WhiteScreenBtn.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
-    else
-        WhiteScreenBtn.Text = "Bật White Screen"
-        WhiteScreenBtn.BackgroundColor3 = Color3.fromRGB(70, 200, 70)
-    end
+    WhiteScreenBtn.Text = WhiteScreen.Visible and "Tắt White" or "Bật White"
+    WhiteScreenBtn.BackgroundColor3 = WhiteScreen.Visible and Color3.fromRGB(200, 50, 50) or Color3.fromRGB(50, 200, 50)
 end)
 
--- 5. Logic Kéo Thả (Draggable) cho Frame và Nút
-local function MakeDraggable(uiElement)
+-- Kéo thả
+local function MakeDraggable(ui)
     local dragging, dragInput, dragStart, startPos
-    
-    uiElement.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = uiElement.Position
-            
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
+    ui.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true dragStart = input.Position startPos = ui.Position
+            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
         end
     end)
-    
-    uiElement.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
-    
+    ui.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end end)
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - dragStart
-            uiElement.Position = UDim2.new(
-                startPos.X.Scale, startPos.X.Offset + delta.X,
-                startPos.Y.Scale, startPos.Y.Offset + delta.Y
-            )
+            ui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
 end
