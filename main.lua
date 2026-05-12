@@ -1,193 +1,281 @@
---// UI Info Script
---// Executor: Synapse / Fluxus / Delta / Codex hỗ trợ setfpscap
+--[=[
+    ROBLOX HORIZONTAL MULTI-FUNCTION GUI
+    Yêu cầu: Executor hỗ trợ setfpscap, setclipboard, gethui (tùy chọn)
+]=]
 
 local Players = game:GetService("Players")
-local Stats = game:GetService("Stats")
-local TeleportService = game:GetService("TeleportService")
 local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 
+-- 1. Khóa FPS ở mức 15 ngay khi chạy script
 pcall(function()
-    setfpscap(15)
+    if setfpscap then
+        setfpscap(15)
+    end
 end)
 
---// GUI
+-- Xóa GUI cũ nếu đã tồn tại để tránh trùng lặp
+local guiName = "CustomHorizontalGUI_15FPS"
+local targetParent = pcall(function() return gethui() end) and gethui() or CoreGui
+if targetParent:FindFirstChild(guiName) then
+    targetParent[guiName]:Destroy()
+end
+if LocalPlayer.PlayerGui:FindFirstChild(guiName) then
+    LocalPlayer.PlayerGui[guiName]:Destroy()
+end
+
+-- Sử dụng PlayerGui nếu CoreGui bị chặn
+local GuiParent = pcall(function() return targetParent.Name end) and targetParent or LocalPlayer.PlayerGui
+
+-- 2. Khởi tạo ScreenGui
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "InfoPanel"
-ScreenGui.Parent = game.CoreGui
+ScreenGui.Name = guiName
 ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = GuiParent
 
--- Toggle Button
-local ToggleBtn = Instance.new("TextButton")
-ToggleBtn.Parent = ScreenGui
-ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
-ToggleBtn.Position = UDim2.new(0, 20, 0.5, -25)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-ToggleBtn.Text = "☰"
-ToggleBtn.TextScaled = true
-ToggleBtn.TextColor3 = Color3.new(1,1,1)
-ToggleBtn.Active = true
-ToggleBtn.Draggable = true
-ToggleBtn.BorderSizePixel = 0
-
-Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(1,0)
-
--- Main Frame
-local Main = Instance.new("Frame")
-Main.Parent = ScreenGui
-Main.Size = UDim2.new(0, 650, 0, 180)
-Main.Position = UDim2.new(0.5, -325, 0.1, 0)
-Main.BackgroundTransparency = 0.25
-Main.BackgroundColor3 = Color3.fromRGB(20,20,20)
-Main.BorderSizePixel = 2
-Main.BorderColor3 = Color3.fromRGB(0,170,255)
-Main.Active = true
-Main.Draggable = true
-
-Instance.new("UICorner", Main).CornerRadius = UDim.new(0,12)
-
--- Avatar
-local Avatar = Instance.new("ImageLabel")
-Avatar.Parent = Main
-Avatar.Size = UDim2.new(0,120,0,120)
-Avatar.Position = UDim2.new(0,15,0.5,-60)
-Avatar.BackgroundTransparency = 1
-Avatar.Image = Players:GetUserThumbnailAsync(
-    LocalPlayer.UserId,
-    Enum.ThumbnailType.HeadShot,
-    Enum.ThumbnailSize.Size420x420
-)
-
--- Info Text
-local Info = Instance.new("TextLabel")
-Info.Parent = Main
-Info.Size = UDim2.new(0, 320, 0, 140)
-Info.Position = UDim2.new(0,150,0,20)
-Info.BackgroundTransparency = 1
-Info.TextXAlignment = Enum.TextXAlignment.Left
-Info.TextYAlignment = Enum.TextYAlignment.Top
-Info.Font = Enum.Font.SourceSansBold
-Info.TextSize = 20
-Info.TextColor3 = Color3.new(1,1,1)
-Info.RichText = true
-
--- Copy Job ID Button
-local CopyBtn = Instance.new("TextButton")
-CopyBtn.Parent = Main
-CopyBtn.Size = UDim2.new(0,140,0,35)
-CopyBtn.Position = UDim2.new(1,-160,0,20)
-CopyBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
-CopyBtn.Text = "Copy Job ID"
-CopyBtn.TextColor3 = Color3.new(1,1,1)
-CopyBtn.TextScaled = true
-CopyBtn.BorderSizePixel = 0
-
-Instance.new("UICorner", CopyBtn).CornerRadius = UDim.new(0,8)
-
--- Join Box
-local JoinBox = Instance.new("TextBox")
-JoinBox.Parent = Main
-JoinBox.Size = UDim2.new(0,140,0,35)
-JoinBox.Position = UDim2.new(1,-160,0,70)
-JoinBox.PlaceholderText = "Nhập Job ID"
-JoinBox.Text = ""
-JoinBox.TextScaled = true
-JoinBox.BackgroundColor3 = Color3.fromRGB(35,35,35)
-JoinBox.TextColor3 = Color3.new(1,1,1)
-JoinBox.BorderColor3 = Color3.fromRGB(0,170,255)
-
-Instance.new("UICorner", JoinBox).CornerRadius = UDim.new(0,8)
-
--- Join Button
-local JoinBtn = Instance.new("TextButton")
-JoinBtn.Parent = Main
-JoinBtn.Size = UDim2.new(0,140,0,35)
-JoinBtn.Position = UDim2.new(1,-160,0,115)
-JoinBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
-JoinBtn.Text = "Join Job ID"
-JoinBtn.TextColor3 = Color3.new(1,1,1)
-JoinBtn.TextScaled = true
-JoinBtn.BorderSizePixel = 0
-
-Instance.new("UICorner", JoinBtn).CornerRadius = UDim.new(0,8)
-
--- White Screen
+-- 3. Màn hình trắng (White Screen) - Bật ngay khi chạy script
 local WhiteScreen = Instance.new("Frame")
-WhiteScreen.Parent = ScreenGui
-WhiteScreen.Size = UDim2.new(1,0,1,0)
-WhiteScreen.BackgroundColor3 = Color3.new(1,1,1)
-WhiteScreen.BackgroundTransparency = 0
-WhiteScreen.Visible = true
+WhiteScreen.Name = "WhiteScreen"
+WhiteScreen.Size = UDim2.new(1, 0, 1, 0)
+WhiteScreen.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 WhiteScreen.ZIndex = 999
+WhiteScreen.Visible = true -- Bật ngay lập tức
+WhiteScreen.Parent = ScreenGui
 
--- White Toggle
-local WhiteToggle = Instance.new("TextButton")
-WhiteToggle.Parent = Main
-WhiteToggle.Size = UDim2.new(0,140,0,35)
-WhiteToggle.Position = UDim2.new(1,-160,1,-45)
-WhiteToggle.BackgroundColor3 = Color3.fromRGB(0,170,255)
-WhiteToggle.Text = "White Screen: ON"
-WhiteToggle.TextColor3 = Color3.new(1,1,1)
-WhiteToggle.TextScaled = true
-WhiteToggle.BorderSizePixel = 0
+-- 4. Nút Toggle (Màu hồng, có thể kéo thả)
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Name = "ToggleBtn"
+ToggleBtn.Size = UDim2.new(0, 100, 0, 40)
+ToggleBtn.Position = UDim2.new(0.5, -50, 0, 10)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(255, 105, 180) -- Màu hồng
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.TextSize = 14
+ToggleBtn.Text = "MENU (ON)"
+ToggleBtn.ZIndex = 1000
+ToggleBtn.Parent = ScreenGui
 
-Instance.new("UICorner", WhiteToggle).CornerRadius = UDim.new(0,8)
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 8)
+ToggleCorner.Parent = ToggleBtn
 
--- Toggle Main
+-- Hàm kéo thả cho Nút Toggle
+local function makeDraggable(gui)
+    local dragging, dragInput, dragStart, startPos
+    gui.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = gui.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    gui.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
+    end)
+    RunService.RenderStepped:Connect(function()
+        if dragging and dragInput then
+            local delta = dragInput.Position - dragStart
+            gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+makeDraggable(ToggleBtn)
+
+-- 5. Khung Main (Nằm ngang, nền trong suốt, viền xanh nước biển)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 780, 0, 160)
+MainFrame.Position = UDim2.new(0.5, -390, 0.5, -80)
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BackgroundTransparency = 0.4 -- Nền bán trong suốt
+MainFrame.ZIndex = 100
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainFrame
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(0, 150, 255) -- Viền xanh nước biển
+MainStroke.Thickness = 2
+MainStroke.Parent = MainFrame
+
+-- Chức năng Ẩn/Hiện MainFrame
 ToggleBtn.MouseButton1Click:Connect(function()
-    Main.Visible = not Main.Visible
+    MainFrame.Visible = not MainFrame.Visible
+    ToggleBtn.Text = MainFrame.Visible and "MENU (ON)" or "MENU (OFF)"
 end)
 
--- Copy Job ID
-CopyBtn.MouseButton1Click:Connect(function()
+-- [PHẦN 1: AVATAR] (Bên trái)
+local AvatarImg = Instance.new("ImageLabel")
+AvatarImg.Size = UDim2.new(0, 120, 0, 120)
+AvatarImg.Position = UDim2.new(0, 20, 0, 20)
+AvatarImg.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+AvatarImg.BackgroundTransparency = 0.5
+AvatarImg.Parent = MainFrame
+
+local AvatarCorner = Instance.new("UICorner")
+AvatarCorner.CornerRadius = UDim.new(1, 0) -- Bo tròn thành hình tròn
+AvatarCorner.Parent = AvatarImg
+
+local AvatarStroke = Instance.new("UIStroke")
+AvatarStroke.Color = Color3.fromRGB(0, 150, 255)
+AvatarStroke.Parent = AvatarImg
+
+-- Load Avatar
+task.spawn(function()
+    local content = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
+    AvatarImg.Image = content
+end)
+
+-- Tạo template Label để tái sử dụng
+local function createLabel(text, pos, size, parent)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = size
+    lbl.Position = pos
+    lbl.BackgroundTransparency = 1
+    lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    lbl.Font = Enum.Font.GothamMedium
+    lbl.TextSize = 13
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Text = text
+    lbl.Parent = parent
+    return lbl
+end
+
+-- [PHẦN 2: THÔNG TIN SERVER & PLAYER] (Ở giữa)
+local NameLabel = createLabel("Name: " .. LocalPlayer.DisplayName .. " (@" .. LocalPlayer.Name .. ")", UDim2.new(0, 160, 0, 15), UDim2.new(0, 300, 0, 20), MainFrame)
+local FpsLabel = createLabel("FPS: ...", UDim2.new(0, 160, 0, 40), UDim2.new(0, 140, 0, 20), MainFrame)
+local PingLabel = createLabel("Ping: ...", UDim2.new(0, 310, 0, 40), UDim2.new(0, 140, 0, 20), MainFrame)
+local PlayersLabel = createLabel("Players: ...", UDim2.new(0, 160, 0, 65), UDim2.new(0, 300, 0, 20), MainFrame)
+local PlaceIdLabel = createLabel("Place ID: " .. game.PlaceId, UDim2.new(0, 160, 0, 90), UDim2.new(0, 300, 0, 20), MainFrame)
+
+local JobIdLabel = createLabel("Job ID: " .. string.sub(game.JobId, 1, 28) .. "...", UDim2.new(0, 160, 0, 115), UDim2.new(0, 240, 0, 20), MainFrame)
+JobIdLabel.TextSize = 11
+
+-- Nút Copy Job ID
+local CopyJobBtn = Instance.new("TextButton")
+CopyJobBtn.Size = UDim2.new(0, 50, 0, 22)
+CopyJobBtn.Position = UDim2.new(0, 410, 0, 114)
+CopyJobBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+CopyJobBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CopyJobBtn.Font = Enum.Font.GothamBold
+CopyJobBtn.TextSize = 11
+CopyJobBtn.Text = "Copy"
+CopyJobBtn.Parent = MainFrame
+Instance.new("UICorner", CopyJobBtn).CornerRadius = UDim.new(0, 4)
+
+CopyJobBtn.MouseButton1Click:Connect(function()
     if setclipboard then
         setclipboard(game.JobId)
-        CopyBtn.Text = "Copied!"
-        task.wait(1)
-        CopyBtn.Text = "Copy Job ID"
-    end
-end)
-
--- Join Job ID
-JoinBtn.MouseButton1Click:Connect(function()
-    if JoinBox.Text ~= "" then
-        TeleportService:TeleportToPlaceInstance(game.PlaceId, JoinBox.Text, LocalPlayer)
-    end
-end)
-
--- White Screen Toggle
-WhiteToggle.MouseButton1Click:Connect(function()
-    WhiteScreen.Visible = not WhiteScreen.Visible
-    
-    if WhiteScreen.Visible then
-        WhiteToggle.Text = "White Screen: ON"
+        CopyJobBtn.Text = "Copied!"
+        task.wait(1.5)
+        CopyJobBtn.Text = "Copy"
     else
-        WhiteToggle.Text = "White Screen: OFF"
+        CopyJobBtn.Text = "Error"
     end
 end)
 
--- FPS Counter
-local fps = 0
-local last = tick()
-local frames = 0
+-- [PHẦN 3: CÁC CHỨC NĂNG TƯƠNG TÁC] (Bên phải)
+-- Ô nhập Job ID
+local JobInput = Instance.new("TextBox")
+JobInput.Size = UDim2.new(0, 220, 0, 30)
+JobInput.Position = UDim2.new(0, 480, 0, 20)
+JobInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+JobInput.BackgroundTransparency = 0.3
+JobInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+JobInput.Font = Enum.Font.Gotham
+JobInput.TextSize = 11
+JobInput.PlaceholderText = "Paste Job ID here to join..."
+JobInput.Text = ""
+JobInput.ClearTextOnFocus = false
+JobInput.Parent = MainFrame
+Instance.new("UICorner", JobInput).CornerRadius = UDim.new(0, 6)
+Instance.new("UIStroke", JobInput).Color = Color3.fromRGB(0, 150, 255)
+
+-- Nút Join Job ID
+local JoinBtn = Instance.new("TextButton")
+JoinBtn.Size = UDim2.new(0, 60, 0, 30)
+JoinBtn.Position = UDim2.new(0, 710, 0, 20)
+JoinBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 83) -- Màu xanh lá
+JoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+JoinBtn.Font = Enum.Font.GothamBold
+JoinBtn.TextSize = 12
+JoinBtn.Text = "Join"
+JoinBtn.Parent = MainFrame
+Instance.new("UICorner", JoinBtn).CornerRadius = UDim.new(0, 6)
+
+JoinBtn.MouseButton1Click:Connect(function()
+    local targetJob = string.gsub(JobInput.Text, " ", "")
+    if targetJob ~= "" then
+        JoinBtn.Text = "Joining..."
+        pcall(function()
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, targetJob, LocalPlayer)
+        end)
+        task.wait(2)
+        JoinBtn.Text = "Join"
+    end
+end)
+
+-- Khung Bật/Tắt White Screen
+local WsLabel = createLabel("White Screen (Tối ưu máy):", UDim2.new(0, 480, 0, 80), UDim2.new(0, 200, 0, 20), MainFrame)
+local WsToggleBtn = Instance.new("TextButton")
+WsToggleBtn.Size = UDim2.new(0, 80, 0, 30)
+WsToggleBtn.Position = UDim2.new(0, 480, 0, 105)
+WsToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255) -- Đang bật mặc định
+WsToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+WsToggleBtn.Font = Enum.Font.GothamBold
+WsToggleBtn.TextSize = 12
+WsToggleBtn.Text = "ON"
+WsToggleBtn.Parent = MainFrame
+Instance.new("UICorner", WsToggleBtn).CornerRadius = UDim.new(0, 6)
+
+WsToggleBtn.MouseButton1Click:Connect(function()
+    WhiteScreen.Visible = not WhiteScreen.Visible
+    if WhiteScreen.Visible then
+        WsToggleBtn.Text = "ON"
+        WsToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    else
+        WsToggleBtn.Text = "OFF"
+        WsToggleBtn.BackgroundColor3 = Color3.fromRGB(120, 120, 120)
+    end
+end)
+
+-- 6. Vòng lặp cập nhật FPS, Ping và Số người chơi
+local frameCount = 0
+local startRealTime = os.clock()
 
 RunService.RenderStepped:Connect(function()
-    frames += 1
+    frameCount += 1
+    local currentTime = os.clock()
     
-    if tick() - last >= 1 then
-        fps = frames
-        frames = 0
-        last = tick()
+    -- Cập nhật mỗi giây
+    if currentTime - startRealTime >= 1 then
+        -- Tính FPS
+        local fps = math.floor(frameCount / (currentTime - startRealTime))
+        FpsLabel.Text = "FPS: " .. fps
+        
+        -- Tính Ping
+        local ping = 0
+        pcall(function()
+            ping = math.floor(LocalPlayer:GetNetworkPing() * 1000)
+        end)
+        PingLabel.Text = "Ping: " .. ping .. " ms"
+        
+        -- Cập nhật số người chơi
+        local currentPlayers = #Players:GetPlayers()
+        local maxPlayers = Players.MaxPlayers
+        PlayersLabel.Text = "Players: " .. currentPlayers .. " / " .. maxPlayers
+
+        -- Reset biến đếm
+        frameCount = 0
+        startRealTime = currentTime
     end
-    
-    local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-    
-    Info.Text =
-        "👤 Name: "..LocalPlayer.Name..
-        "\n🎮 FPS: "..fps..
-        "\n📶 Ping: "..ping.." ms"..
-        "\n👥 Players: "..#Players:GetPlayers()..
-        "\n🆔 Place ID: "..game.PlaceId..
-        "\n📌 Job ID:\n"..game.JobId
 end)
