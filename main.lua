@@ -31,32 +31,28 @@ WhiteScreen.Name = "WhiteScreen"
 WhiteScreen.Size = UDim2.new(1,0,1,0)
 WhiteScreen.Position = UDim2.new(0,0,0,0)
 WhiteScreen.BackgroundColor3 = Color3.fromRGB(255,255,255)
-WhiteScreen.BackgroundTransparency = 0
 WhiteScreen.BorderSizePixel = 0
 WhiteScreen.ZIndex = 0
 WhiteScreen.Parent = ScreenGui
-
--- Không che GUI
-local Hole = Instance.new("Frame")
-Hole.Size = UDim2.new(0,720,0,170)
-Hole.Position = UDim2.new(0.5,-360,0.08,0)
-Hole.BackgroundTransparency = 1
-Hole.ZIndex = 10
-Hole.Parent = WhiteScreen
 
 -- MAIN
 local Main = Instance.new("Frame")
 Main.Size = UDim2.new(0,720,0,170)
 Main.Position = UDim2.new(0.5,-360,0.08,0)
 Main.BackgroundColor3 = Color3.fromRGB(20,20,20)
-Main.BackgroundTransparency = 0.35
-Main.BorderSizePixel = 2
-Main.BorderColor3 = Color3.fromRGB(0,170,255)
+Main.BackgroundTransparency = 0.3
+Main.BorderSizePixel = 0
 Main.Active = true
 Main.Parent = ScreenGui
 
-local Corner = Instance.new("UICorner", Main)
-Corner.CornerRadius = UDim.new(0,12)
+local MainCorner = Instance.new("UICorner", Main)
+MainCorner.CornerRadius = UDim.new(0,22)
+
+-- VIỀN XANH
+local Stroke = Instance.new("UIStroke")
+Stroke.Parent = Main
+Stroke.Color = Color3.fromRGB(0,170,255)
+Stroke.Thickness = 3
 
 -- DRAG
 local dragging = false
@@ -94,8 +90,6 @@ local Avatar = Instance.new("ImageLabel")
 Avatar.Size = UDim2.new(0,120,0,120)
 Avatar.Position = UDim2.new(0,15,0.5,-60)
 Avatar.BackgroundTransparency = 1
-Avatar.BorderSizePixel = 2
-Avatar.BorderColor3 = Color3.fromRGB(0,170,255)
 Avatar.Parent = Main
 
 local thumb = Players:GetUserThumbnailAsync(
@@ -109,6 +103,11 @@ Avatar.Image = thumb
 local AvatarCorner = Instance.new("UICorner", Avatar)
 AvatarCorner.CornerRadius = UDim.new(1,0)
 
+local AvatarStroke = Instance.new("UIStroke")
+AvatarStroke.Parent = Avatar
+AvatarStroke.Color = Color3.fromRGB(0,170,255)
+AvatarStroke.Thickness = 3
+
 -- INFO
 local Info = Instance.new("TextLabel")
 Info.Size = UDim2.new(0,330,0,130)
@@ -117,8 +116,8 @@ Info.BackgroundTransparency = 1
 Info.TextColor3 = Color3.fromRGB(255,255,255)
 Info.TextXAlignment = Enum.TextXAlignment.Left
 Info.TextYAlignment = Enum.TextYAlignment.Top
-Info.Font = Enum.Font.Code
-Info.TextSize = 18
+Info.Font = Enum.Font.Cartoon
+Info.TextSize = 20
 Info.RichText = true
 Info.Parent = Main
 
@@ -129,12 +128,18 @@ CopyBtn.Position = UDim2.new(1,-170,0,20)
 CopyBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
 CopyBtn.Text = "Copy Job ID"
 CopyBtn.TextColor3 = Color3.fromRGB(255,255,255)
-CopyBtn.Font = Enum.Font.GothamBold
-CopyBtn.TextSize = 16
+CopyBtn.Font = Enum.Font.Cartoon
+CopyBtn.TextSize = 18
+CopyBtn.BorderSizePixel = 0
 CopyBtn.Parent = Main
 
 local CopyCorner = Instance.new("UICorner", CopyBtn)
-CopyCorner.CornerRadius = UDim.new(0,8)
+CopyCorner.CornerRadius = UDim.new(0,12)
+
+local CopyStroke = Instance.new("UIStroke")
+CopyStroke.Parent = CopyBtn
+CopyStroke.Color = Color3.fromRGB(100,220,255)
+CopyStroke.Thickness = 2
 
 CopyBtn.MouseButton1Click:Connect(function()
     if setclipboard then
@@ -153,12 +158,19 @@ JoinBox.PlaceholderText = "Enter Job ID"
 JoinBox.Text = ""
 JoinBox.BackgroundColor3 = Color3.fromRGB(35,35,35)
 JoinBox.TextColor3 = Color3.fromRGB(255,255,255)
-JoinBox.Font = Enum.Font.Code
-JoinBox.TextSize = 15
+JoinBox.PlaceholderColor3 = Color3.fromRGB(180,180,180)
+JoinBox.Font = Enum.Font.Cartoon
+JoinBox.TextSize = 17
+JoinBox.BorderSizePixel = 0
 JoinBox.Parent = Main
 
 local JoinCorner = Instance.new("UICorner", JoinBox)
-JoinCorner.CornerRadius = UDim.new(0,8)
+JoinCorner.CornerRadius = UDim.new(0,12)
+
+local JoinStroke = Instance.new("UIStroke")
+JoinStroke.Parent = JoinBox
+JoinStroke.Color = Color3.fromRGB(0,170,255)
+JoinStroke.Thickness = 2
 
 -- JOIN BUTTON
 local JoinBtn = Instance.new("TextButton")
@@ -167,12 +179,18 @@ JoinBtn.Position = UDim2.new(1,-170,0,115)
 JoinBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
 JoinBtn.Text = "Join Job ID"
 JoinBtn.TextColor3 = Color3.fromRGB(255,255,255)
-JoinBtn.Font = Enum.Font.GothamBold
-JoinBtn.TextSize = 16
+JoinBtn.Font = Enum.Font.Cartoon
+JoinBtn.TextSize = 18
+JoinBtn.BorderSizePixel = 0
 JoinBtn.Parent = Main
 
 local JoinBtnCorner = Instance.new("UICorner", JoinBtn)
-JoinBtnCorner.CornerRadius = UDim.new(0,8)
+JoinBtnCorner.CornerRadius = UDim.new(0,12)
+
+local JoinBtnStroke = Instance.new("UIStroke")
+JoinBtnStroke.Parent = JoinBtn
+JoinBtnStroke.Color = Color3.fromRGB(100,220,255)
+JoinBtnStroke.Thickness = 2
 
 JoinBtn.MouseButton1Click:Connect(function()
     local id = JoinBox.Text
@@ -183,17 +201,23 @@ end)
 
 -- TOGGLE BUTTON
 local Toggle = Instance.new("TextButton")
-Toggle.Size = UDim2.new(0,60,0,60)
+Toggle.Size = UDim2.new(0,65,0,65)
 Toggle.Position = UDim2.new(0,20,0.75,0)
 Toggle.BackgroundColor3 = Color3.fromRGB(0,170,255)
 Toggle.Text = "ON"
 Toggle.TextColor3 = Color3.fromRGB(255,255,255)
-Toggle.Font = Enum.Font.GothamBold
-Toggle.TextSize = 18
+Toggle.Font = Enum.Font.Cartoon
+Toggle.TextSize = 20
+Toggle.BorderSizePixel = 0
 Toggle.Parent = ScreenGui
 
 local ToggleCorner = Instance.new("UICorner", Toggle)
 ToggleCorner.CornerRadius = UDim.new(1,0)
+
+local ToggleStroke = Instance.new("UIStroke")
+ToggleStroke.Parent = Toggle
+ToggleStroke.Color = Color3.fromRGB(100,220,255)
+ToggleStroke.Thickness = 3
 
 -- DRAG TOGGLE
 local dragging2 = false
@@ -256,7 +280,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- UPDATE
+-- UPDATE INFO
 task.spawn(function()
     while true do
         local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
