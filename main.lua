@@ -1,20 +1,5 @@
---// Roblox Info Panel Script
---// UI: Transparent + Blue Border
---// Features:
---// Name, FPS, Ping, Players, PlaceId, JobId
---// Copy JobId
---// Join JobId
---// Avatar Preview
---// White Screen Toggle
---// Draggable Toggle Button
---// FPS Lock 15
-
-repeat task.wait() until game:IsLoaded()
-
--- FPS LOCK
-pcall(function()
-    setfpscap(15)
-end)
+--// INFO PANEL + WHITE SCREEN
+--// Hỗ trợ executor có setfpscap()
 
 local Players = game:GetService("Players")
 local Stats = game:GetService("Stats")
@@ -24,202 +9,266 @@ local UserInputService = game:GetService("UserInputService")
 
 local LocalPlayer = Players.LocalPlayer
 
+pcall(function()
+    setfpscap(15)
+end)
+
+-- Xóa GUI cũ
+pcall(function()
+    game.CoreGui.InfoPanelGUI:Destroy()
+end)
+
 -- GUI
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Parent = game.CoreGui
+ScreenGui.Name = "InfoPanelGUI"
 ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.Parent = game.CoreGui
 
--- MAIN FRAME
+-- WHITE SCREEN
+local WhiteScreen = Instance.new("Frame")
+WhiteScreen.Name = "WhiteScreen"
+WhiteScreen.Size = UDim2.new(1,0,1,0)
+WhiteScreen.Position = UDim2.new(0,0,0,0)
+WhiteScreen.BackgroundColor3 = Color3.fromRGB(255,255,255)
+WhiteScreen.BackgroundTransparency = 0
+WhiteScreen.BorderSizePixel = 0
+WhiteScreen.ZIndex = 0
+WhiteScreen.Parent = ScreenGui
+
+-- Không che GUI
+local Hole = Instance.new("Frame")
+Hole.Size = UDim2.new(0,720,0,170)
+Hole.Position = UDim2.new(0.5,-360,0.08,0)
+Hole.BackgroundTransparency = 1
+Hole.ZIndex = 10
+Hole.Parent = WhiteScreen
+
+-- MAIN
 local Main = Instance.new("Frame")
-Main.Parent = ScreenGui
-Main.Size = UDim2.new(0, 330, 0, 340)
-Main.Position = UDim2.new(0.5, -165, 0.5, -170)
-Main.BackgroundColor3 = Color3.fromRGB(0,0,0)
+Main.Size = UDim2.new(0,720,0,170)
+Main.Position = UDim2.new(0.5,-360,0.08,0)
+Main.BackgroundColor3 = Color3.fromRGB(20,20,20)
 Main.BackgroundTransparency = 0.35
-Main.BorderSizePixel = 0
+Main.BorderSizePixel = 2
+Main.BorderColor3 = Color3.fromRGB(0,170,255)
 Main.Active = true
-Main.Draggable = true
+Main.Parent = ScreenGui
 
-local Stroke = Instance.new("UIStroke")
-Stroke.Parent = Main
-Stroke.Color = Color3.fromRGB(0,170,255)
-Stroke.Thickness = 2
+local Corner = Instance.new("UICorner", Main)
+Corner.CornerRadius = UDim.new(0,12)
 
-local Corner = Instance.new("UICorner")
-Corner.Parent = Main
+-- DRAG
+local dragging = false
+local dragStart
+local startPos
 
--- TITLE
-local Title = Instance.new("TextLabel")
-Title.Parent = Main
-Title.Size = UDim2.new(1,0,0,35)
-Title.BackgroundTransparency = 1
-Title.Text = "SERVER INFO PANEL"
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 18
-Title.TextColor3 = Color3.fromRGB(0,170,255)
+Main.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = Main.Position
+    end
+end)
+
+Main.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        Main.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
 
 -- AVATAR
 local Avatar = Instance.new("ImageLabel")
-Avatar.Parent = Main
-Avatar.Size = UDim2.new(0,80,0,80)
-Avatar.Position = UDim2.new(0,15,0,45)
+Avatar.Size = UDim2.new(0,120,0,120)
+Avatar.Position = UDim2.new(0,15,0.5,-60)
 Avatar.BackgroundTransparency = 1
+Avatar.BorderSizePixel = 2
+Avatar.BorderColor3 = Color3.fromRGB(0,170,255)
+Avatar.Parent = Main
 
-local userId = LocalPlayer.UserId
-local thumbType = Enum.ThumbnailType.HeadShot
-local thumbSize = Enum.ThumbnailSize.Size420x420
-local content, ready = Players:GetUserThumbnailAsync(userId, thumbType, thumbSize)
-Avatar.Image = content
+local thumb = Players:GetUserThumbnailAsync(
+    LocalPlayer.UserId,
+    Enum.ThumbnailType.HeadShot,
+    Enum.ThumbnailSize.Size420x420
+)
 
--- INFO LABELS
+Avatar.Image = thumb
+
+local AvatarCorner = Instance.new("UICorner", Avatar)
+AvatarCorner.CornerRadius = UDim.new(1,0)
+
+-- INFO
 local Info = Instance.new("TextLabel")
-Info.Parent = Main
-Info.Position = UDim2.new(0,110,0,45)
-Info.Size = UDim2.new(0,200,0,150)
+Info.Size = UDim2.new(0,330,0,130)
+Info.Position = UDim2.new(0,150,0,20)
 Info.BackgroundTransparency = 1
+Info.TextColor3 = Color3.fromRGB(255,255,255)
 Info.TextXAlignment = Enum.TextXAlignment.Left
 Info.TextYAlignment = Enum.TextYAlignment.Top
 Info.Font = Enum.Font.Code
-Info.TextSize = 14
-Info.TextColor3 = Color3.fromRGB(255,255,255)
-Info.Text = ""
+Info.TextSize = 18
+Info.RichText = true
+Info.Parent = Main
 
--- JOB ID BOX
-local JobBox = Instance.new("TextBox")
-JobBox.Parent = Main
-JobBox.Size = UDim2.new(0,220,0,35)
-JobBox.Position = UDim2.new(0,15,0,210)
-JobBox.Text = game.JobId
-JobBox.PlaceholderText = "Enter Job ID"
-JobBox.Font = Enum.Font.Code
-JobBox.TextSize = 14
-JobBox.TextColor3 = Color3.new(1,1,1)
-JobBox.BackgroundColor3 = Color3.fromRGB(20,20,20)
-
-local jbCorner = Instance.new("UICorner", JobBox)
-
-local jbStroke = Instance.new("UIStroke", JobBox)
-jbStroke.Color = Color3.fromRGB(0,170,255)
-
--- COPY BUTTON
+-- COPY JOB ID
 local CopyBtn = Instance.new("TextButton")
-CopyBtn.Parent = Main
-CopyBtn.Size = UDim2.new(0,80,0,35)
-CopyBtn.Position = UDim2.new(0,245,0,210)
-CopyBtn.Text = "COPY"
+CopyBtn.Size = UDim2.new(0,150,0,35)
+CopyBtn.Position = UDim2.new(1,-170,0,20)
+CopyBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+CopyBtn.Text = "Copy Job ID"
+CopyBtn.TextColor3 = Color3.fromRGB(255,255,255)
 CopyBtn.Font = Enum.Font.GothamBold
-CopyBtn.TextSize = 14
-CopyBtn.TextColor3 = Color3.new(1,1,1)
-CopyBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+CopyBtn.TextSize = 16
+CopyBtn.Parent = Main
 
-local cpCorner = Instance.new("UICorner", CopyBtn)
+local CopyCorner = Instance.new("UICorner", CopyBtn)
+CopyCorner.CornerRadius = UDim.new(0,8)
 
 CopyBtn.MouseButton1Click:Connect(function()
     if setclipboard then
         setclipboard(game.JobId)
-        CopyBtn.Text = "COPIED"
+        CopyBtn.Text = "Copied!"
         task.wait(1)
-        CopyBtn.Text = "COPY"
+        CopyBtn.Text = "Copy Job ID"
     end
 end)
+
+-- JOIN BOX
+local JoinBox = Instance.new("TextBox")
+JoinBox.Size = UDim2.new(0,150,0,35)
+JoinBox.Position = UDim2.new(1,-170,0,70)
+JoinBox.PlaceholderText = "Enter Job ID"
+JoinBox.Text = ""
+JoinBox.BackgroundColor3 = Color3.fromRGB(35,35,35)
+JoinBox.TextColor3 = Color3.fromRGB(255,255,255)
+JoinBox.Font = Enum.Font.Code
+JoinBox.TextSize = 15
+JoinBox.Parent = Main
+
+local JoinCorner = Instance.new("UICorner", JoinBox)
+JoinCorner.CornerRadius = UDim.new(0,8)
 
 -- JOIN BUTTON
 local JoinBtn = Instance.new("TextButton")
-JoinBtn.Parent = Main
-JoinBtn.Size = UDim2.new(1,-30,0,35)
-JoinBtn.Position = UDim2.new(0,15,0,255)
-JoinBtn.Text = "JOIN JOB ID"
+JoinBtn.Size = UDim2.new(0,150,0,35)
+JoinBtn.Position = UDim2.new(1,-170,0,115)
+JoinBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+JoinBtn.Text = "Join Job ID"
+JoinBtn.TextColor3 = Color3.fromRGB(255,255,255)
 JoinBtn.Font = Enum.Font.GothamBold
-JoinBtn.TextSize = 14
-JoinBtn.TextColor3 = Color3.new(1,1,1)
-JoinBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+JoinBtn.TextSize = 16
+JoinBtn.Parent = Main
 
-local joinCorner = Instance.new("UICorner", JoinBtn)
+local JoinBtnCorner = Instance.new("UICorner", JoinBtn)
+JoinBtnCorner.CornerRadius = UDim.new(0,8)
 
 JoinBtn.MouseButton1Click:Connect(function()
-    if JobBox.Text ~= "" then
-        TeleportService:TeleportToPlaceInstance(game.PlaceId, JobBox.Text, LocalPlayer)
-    end
-end)
-
--- WHITE SCREEN
-local WhiteScreen = Instance.new("Frame")
-WhiteScreen.Parent = ScreenGui
-WhiteScreen.Size = UDim2.new(1,0,1,0)
-WhiteScreen.BackgroundColor3 = Color3.new(1,1,1)
-WhiteScreen.Visible = false
-WhiteScreen.ZIndex = 999
-
--- WHITE SCREEN TOGGLE
-local WhiteBtn = Instance.new("TextButton")
-WhiteBtn.Parent = Main
-WhiteBtn.Size = UDim2.new(1,-30,0,35)
-WhiteBtn.Position = UDim2.new(0,15,0,300)
-WhiteBtn.Text = "WHITE SCREEN : OFF"
-WhiteBtn.Font = Enum.Font.GothamBold
-WhiteBtn.TextSize = 14
-WhiteBtn.TextColor3 = Color3.new(1,1,1)
-WhiteBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-
-local wbCorner = Instance.new("UICorner", WhiteBtn)
-
-local WhiteEnabled = false
-
-WhiteBtn.MouseButton1Click:Connect(function()
-    WhiteEnabled = not WhiteEnabled
-    WhiteScreen.Visible = WhiteEnabled
-    
-    if WhiteEnabled then
-        WhiteBtn.Text = "WHITE SCREEN : ON"
-    else
-        WhiteBtn.Text = "WHITE SCREEN : OFF"
+    local id = JoinBox.Text
+    if id ~= "" then
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, id, LocalPlayer)
     end
 end)
 
 -- TOGGLE BUTTON
 local Toggle = Instance.new("TextButton")
-Toggle.Parent = ScreenGui
-Toggle.Size = UDim2.new(0,50,0,50)
-Toggle.Position = UDim2.new(0,20,0.5,-25)
-Toggle.Text = "UI"
+Toggle.Size = UDim2.new(0,60,0,60)
+Toggle.Position = UDim2.new(0,20,0.75,0)
+Toggle.BackgroundColor3 = Color3.fromRGB(0,170,255)
+Toggle.Text = "ON"
+Toggle.TextColor3 = Color3.fromRGB(255,255,255)
 Toggle.Font = Enum.Font.GothamBold
 Toggle.TextSize = 18
-Toggle.TextColor3 = Color3.new(1,1,1)
-Toggle.BackgroundColor3 = Color3.fromRGB(0,120,255)
-Toggle.Active = true
-Toggle.Draggable = true
+Toggle.Parent = ScreenGui
 
-local tgCorner = Instance.new("UICorner", Toggle)
-tgCorner.CornerRadius = UDim.new(1,0)
+local ToggleCorner = Instance.new("UICorner", Toggle)
+ToggleCorner.CornerRadius = UDim.new(1,0)
 
-local Open = true
+-- DRAG TOGGLE
+local dragging2 = false
+local dragStart2
+local startPos2
 
-Toggle.MouseButton1Click:Connect(function()
-    Open = not Open
-    Main.Visible = Open
+Toggle.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging2 = true
+        dragStart2 = input.Position
+        startPos2 = Toggle.Position
+    end
 end)
 
--- FPS COUNTER
+Toggle.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging2 = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging2 and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart2
+        Toggle.Position = UDim2.new(
+            startPos2.X.Scale,
+            startPos2.X.Offset + delta.X,
+            startPos2.Y.Scale,
+            startPos2.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- TOGGLE WHITE SCREEN
+local Enabled = true
+
+Toggle.MouseButton1Click:Connect(function()
+    Enabled = not Enabled
+
+    WhiteScreen.Visible = Enabled
+
+    if Enabled then
+        Toggle.Text = "ON"
+    else
+        Toggle.Text = "OFF"
+    end
+end)
+
+-- FPS
 local fps = 0
 local last = tick()
 local frames = 0
 
 RunService.RenderStepped:Connect(function()
     frames += 1
-    
+
     if tick() - last >= 1 then
         fps = frames
         frames = 0
         last = tick()
     end
-    
-    local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-    
-    Info.Text =
-        "Name : "..LocalPlayer.Name..
-        "\nFPS : "..fps..
-        "\nPing : "..ping.." ms"..
-        "\nPlayers : "..#Players:GetPlayers()..
-        "\nPlace ID : "..game.PlaceId..
-        "\nJob ID : "..game.JobId
+end)
+
+-- UPDATE
+task.spawn(function()
+    while true do
+        local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+
+        Info.Text =
+            "<font color='#00AAFF'>Name:</font> "..LocalPlayer.Name..
+            "\n<font color='#00AAFF'>FPS:</font> "..fps..
+            "\n<font color='#00AAFF'>Ping:</font> "..ping.." ms"..
+            "\n<font color='#00AAFF'>Players:</font> "..#Players:GetPlayers()..
+            "\n<font color='#00AAFF'>Place ID:</font> "..game.PlaceId..
+            "\n<font color='#00AAFF'>Job ID:</font> "..game.JobId
+
+        task.wait(1)
+    end
 end)
