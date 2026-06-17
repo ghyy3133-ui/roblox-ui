@@ -6,6 +6,7 @@ local Stats = game:GetService("Stats")
 local TeleportService = game:GetService("TeleportService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -35,7 +36,7 @@ WhiteScreen.BorderSizePixel = 0
 WhiteScreen.ZIndex = 0
 WhiteScreen.Parent = ScreenGui
 
--- MAIN
+-- MAIN PANEL
 local Main = Instance.new("Frame")
 Main.Size = UDim2.new(0,720,0,170)
 Main.Position = UDim2.new(0.5,-360,0.08,0)
@@ -43,6 +44,7 @@ Main.BackgroundColor3 = Color3.fromRGB(20,20,20)
 Main.BackgroundTransparency = 0.3
 Main.BorderSizePixel = 0
 Main.Active = true
+Main.Visible = true
 Main.Parent = ScreenGui
 
 local MainCorner = Instance.new("UICorner", Main)
@@ -199,40 +201,40 @@ JoinBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- TOGGLE BUTTON
-local Toggle = Instance.new("TextButton")
-Toggle.Size = UDim2.new(0,65,0,65)
-Toggle.Position = UDim2.new(0,20,0.75,0)
-Toggle.BackgroundColor3 = Color3.fromRGB(0,170,255)
-Toggle.Text = "ON"
-Toggle.TextColor3 = Color3.fromRGB(255,255,255)
-Toggle.Font = Enum.Font.Cartoon
-Toggle.TextSize = 20
-Toggle.BorderSizePixel = 0
-Toggle.Parent = ScreenGui
+-- TOGGLE WHITE SCREEN BUTTON
+local ToggleWhite = Instance.new("TextButton")
+ToggleWhite.Size = UDim2.new(0,65,0,65)
+ToggleWhite.Position = UDim2.new(0,20,0.75,0)
+ToggleWhite.BackgroundColor3 = Color3.fromRGB(0,170,255)
+ToggleWhite.Text = "ON"
+ToggleWhite.TextColor3 = Color3.fromRGB(255,255,255)
+ToggleWhite.Font = Enum.Font.Cartoon
+ToggleWhite.TextSize = 20
+ToggleWhite.BorderSizePixel = 0
+ToggleWhite.Parent = ScreenGui
 
-local ToggleCorner = Instance.new("UICorner", Toggle)
+local ToggleCorner = Instance.new("UICorner", ToggleWhite)
 ToggleCorner.CornerRadius = UDim.new(1,0)
 
 local ToggleStroke = Instance.new("UIStroke")
-ToggleStroke.Parent = Toggle
+ToggleStroke.Parent = ToggleWhite
 ToggleStroke.Color = Color3.fromRGB(100,220,255)
 ToggleStroke.Thickness = 3
 
--- DRAG TOGGLE
+-- DRAG TOGGLE WHITE
 local dragging2 = false
 local dragStart2
 local startPos2
 
-Toggle.InputBegan:Connect(function(input)
+ToggleWhite.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging2 = true
         dragStart2 = input.Position
-        startPos2 = Toggle.Position
+        startPos2 = ToggleWhite.Position
     end
 end)
 
-Toggle.InputEnded:Connect(function(input)
+ToggleWhite.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging2 = false
     end
@@ -241,7 +243,7 @@ end)
 UserInputService.InputChanged:Connect(function(input)
     if dragging2 and input.UserInputType == Enum.UserInputType.MouseMovement then
         local delta = input.Position - dragStart2
-        Toggle.Position = UDim2.new(
+        ToggleWhite.Position = UDim2.new(
             startPos2.X.Scale,
             startPos2.X.Offset + delta.X,
             startPos2.Y.Scale,
@@ -251,17 +253,104 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- TOGGLE WHITE SCREEN
-local Enabled = true
+local WhiteEnabled = true
 
-Toggle.MouseButton1Click:Connect(function()
-    Enabled = not Enabled
+ToggleWhite.MouseButton1Click:Connect(function()
+    WhiteEnabled = not WhiteEnabled
+    WhiteScreen.Visible = WhiteEnabled
+    ToggleWhite.Text = WhiteEnabled and "ON" or "OFF"
+end)
 
-    WhiteScreen.Visible = Enabled
+-- ====== NÚT THU GỌN/TẮT GUI MỚI ======
+local ToggleGuiBtn = Instance.new("TextButton")
+ToggleGuiBtn.Size = UDim2.new(0,40,0,40)
+ToggleGuiBtn.Position = UDim2.new(1,-55,0.08,0)
+ToggleGuiBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+ToggleGuiBtn.Text = "✕"
+ToggleGuiBtn.TextColor3 = Color3.fromRGB(255,255,255)
+ToggleGuiBtn.Font = Enum.Font.Cartoon
+ToggleGuiBtn.TextSize = 22
+ToggleGuiBtn.BorderSizePixel = 0
+ToggleGuiBtn.Parent = ScreenGui
 
-    if Enabled then
-        Toggle.Text = "ON"
+local ToggleGuiCorner = Instance.new("UICorner", ToggleGuiBtn)
+ToggleGuiCorner.CornerRadius = UDim.new(1,0)
+
+local ToggleGuiStroke = Instance.new("UIStroke")
+ToggleGuiStroke.Parent = ToggleGuiBtn
+ToggleGuiStroke.Color = Color3.fromRGB(100,220,255)
+ToggleGuiStroke.Thickness = 2
+
+-- DRAG TOGGLE GUI BUTTON
+local dragging3 = false
+local dragStart3
+local startPos3
+
+ToggleGuiBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging3 = true
+        dragStart3 = input.Position
+        startPos3 = ToggleGuiBtn.Position
+    end
+end)
+
+ToggleGuiBtn.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging3 = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging3 and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart3
+        ToggleGuiBtn.Position = UDim2.new(
+            startPos3.X.Scale,
+            startPos3.X.Offset + delta.X,
+            startPos3.Y.Scale,
+            startPos3.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- Biến trạng thái
+local GuiVisible = true
+local isMinimized = false
+
+-- Hàm thu gọn/mở rộng
+local function ToggleGui()
+    isMinimized = not isMinimized
+    
+    if isMinimized then
+        -- Thu gọn: ẩn hết, chỉ để lại nút toggle
+        Main.Visible = false
+        ToggleWhite.Visible = false
+        ToggleGuiBtn.Text = "☰"
+        ToggleGuiBtn.Size = UDim2.new(0,40,0,40)
     else
-        Toggle.Text = "OFF"
+        -- Mở rộng: hiện tất cả
+        Main.Visible = true
+        ToggleWhite.Visible = true
+        ToggleGuiBtn.Text = "✕"
+        ToggleGuiBtn.Size = UDim2.new(0,40,0,40)
+    end
+end
+
+-- Click để thu gọn/mở rộng
+ToggleGuiBtn.MouseButton1Click:Connect(ToggleGui)
+
+-- Phím tắt: Insert để thu gọn/mở rộng
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Insert then
+        ToggleGui()
+    end
+end)
+
+-- Phím tắt: End để bật/tắt WhiteScreen
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.End then
+        WhiteEnabled = not WhiteEnabled
+        WhiteScreen.Visible = WhiteEnabled
+        ToggleWhite.Text = WhiteEnabled and "ON" or "OFF"
     end
 end)
 
@@ -272,7 +361,6 @@ local frames = 0
 
 RunService.RenderStepped:Connect(function()
     frames += 1
-
     if tick() - last >= 1 then
         fps = frames
         frames = 0
@@ -284,7 +372,7 @@ end)
 task.spawn(function()
     while true do
         local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-
+        
         Info.Text =
             "<font color='#00AAFF'>Name:</font> "..LocalPlayer.Name..
             "\n<font color='#00AAFF'>FPS:</font> "..fps..
@@ -292,7 +380,13 @@ task.spawn(function()
             "\n<font color='#00AAFF'>Players:</font> "..#Players:GetPlayers()..
             "\n<font color='#00AAFF'>Place ID:</font> "..game.PlaceId..
             "\n<font color='#00AAFF'>Job ID:</font> "..game.JobId
-
+        
         task.wait(1)
     end
 end)
+
+-- Thông báo phím tắt
+task.wait(0.5)
+print("=== INFO PANEL CONTROLS ===")
+print("Insert: Toggle GUI (Hide/Show)")
+print("End: Toggle White Screen")
