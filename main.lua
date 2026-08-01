@@ -113,6 +113,28 @@ btnStroke.Thickness = 1.5
 btnStroke.Parent = resetButton
 
 -----------------------------------
+
+-- Note Storage
+local noteFile="Notes/"..LocalPlayer.UserId..".txt"
+if makefolder and not isfolder("Notes") then pcall(makefolder,"Notes") end
+local noteBox=Instance.new("TextBox")
+noteBox.Size=UDim2.new(1,0,0,60)
+noteBox.BackgroundColor3=Color3.fromRGB(40,40,55)
+noteBox.TextColor3=Color3.new(1,1,1)
+noteBox.Font=Enum.Font.FredokaOne
+noteBox.TextWrapped=true
+noteBox.ClearTextOnFocus=false
+noteBox.PlaceholderText="Note for this account..."
+noteBox.LayoutOrder=6
+noteBox.Parent=mainFrame
+local nc=Instance.new("UICorner",noteBox)
+if isfile and isfile(noteFile) then
+ pcall(function() noteBox.Text=readfile(noteFile) end)
+end
+noteBox.FocusLost:Connect(function()
+ if writefile then pcall(function() writefile(noteFile,noteBox.Text) end) end
+end)
+
 -- LOGIC & FUNCTIONS
 -----------------------------------
 
