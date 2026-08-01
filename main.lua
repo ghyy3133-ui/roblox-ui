@@ -12,7 +12,7 @@ screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 -- Create Main Frame (Cartoony & Dark Style)
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 240, 0, 210)
+mainFrame.Size = UDim2.new(0, 240, 0, 285)
 mainFrame.Position = UDim2.new(0, 20, 0, 20)
 mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
 mainFrame.BackgroundTransparency = 0.2
@@ -114,26 +114,37 @@ btnStroke.Parent = resetButton
 
 -----------------------------------
 
--- Note Storage
-local noteFile="Notes/"..LocalPlayer.UserId..".txt"
-if makefolder and not isfolder("Notes") then pcall(makefolder,"Notes") end
+-- Note Box
+local notesFolder="Notes"
+if makefolder and not isfolder(notesFolder) then pcall(makefolder,notesFolder) end
+local notePath=notesFolder.."/"..LocalPlayer.UserId..".txt"
+
 local noteBox=Instance.new("TextBox")
+noteBox.Name="NoteBox"
 noteBox.Size=UDim2.new(1,0,0,60)
-noteBox.BackgroundColor3=Color3.fromRGB(40,40,55)
-noteBox.TextColor3=Color3.new(1,1,1)
-noteBox.Font=Enum.Font.FredokaOne
-noteBox.TextWrapped=true
+noteBox.BackgroundColor3=Color3.fromRGB(40,40,58)
+noteBox.BorderSizePixel=0
+noteBox.TextColor3=Color3.fromRGB(255,255,255)
+noteBox.PlaceholderText="Write note here..."
+noteBox.PlaceholderColor3=Color3.fromRGB(160,160,160)
 noteBox.ClearTextOnFocus=false
-noteBox.PlaceholderText="Note for this account..."
+noteBox.MultiLine=true
+noteBox.TextWrapped=true
+noteBox.TextXAlignment=Enum.TextXAlignment.Left
+noteBox.TextYAlignment=Enum.TextYAlignment.Top
+noteBox.Font=Enum.Font.FredokaOne
+noteBox.TextSize=14
 noteBox.LayoutOrder=6
 noteBox.Parent=mainFrame
-local nc=Instance.new("UICorner",noteBox)
-if isfile and isfile(noteFile) then
- pcall(function() noteBox.Text=readfile(noteFile) end)
-end
+Instance.new("UICorner",noteBox).CornerRadius=UDim.new(0,10)
+local ns=Instance.new("UIStroke",noteBox)
+ns.Color=Color3.fromRGB(80,80,110)
+ns.Thickness=1.5
+if isfile and isfile(notePath) then pcall(function() noteBox.Text=readfile(notePath) end) end
 noteBox.FocusLost:Connect(function()
- if writefile then pcall(function() writefile(noteFile,noteBox.Text) end) end
+ if writefile then pcall(function() writefile(notePath,noteBox.Text) end) end
 end)
+
 
 -- LOGIC & FUNCTIONS
 -----------------------------------
